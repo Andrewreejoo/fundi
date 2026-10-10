@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (tests on PostGIS)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env: { POSTGRES_USER: fundi, POSTGRES_PASSWORD: fundi, POSTGRES_DB: fundi_test }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fundi" --health-interval 3s --health-retries 20
+    defaults: { run: { working-directory: api } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: api/package-lock.json }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+        env: { TEST_DATABASE_URL: postgres://fundi:fundi@localhost:5432/fundi_test }
+      - run: npm run build
+
+  web:
+    name: Website (type check, build, walkthrough)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env: { POSTGRES_USER: fundi, POSTGRES_PASSWORD: fundi, POSTGRES_DB: fundi }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fundi" --health-interval 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Install
+        run: |
+          (cd api && npm ci)
+          (cd web && npm ci)
+      - name: Type check
+        working-directory: web
+        run: npm run check
+      - name: Build
+        working-directory: web
+        run: npm run build
+      - name: Start API with demo data (simulated payments)
+        working-directory: api
+        env:
+          DATABASE_URL: postgres://fundi:fundi@localhost:5432/fundi
+          PAYMENTS_DRIVER: fake
+          DEV_OTP_ECHO: 'true'
+          ADMIN_PHONES: '0999000001'
+        run: |
+          npm run seed
+          nohup npx ts-node --transpile-only src/main.ts > api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:3000/health && break; sleep 1; done
+      - name: Start website
+        working-directory: web
+        env: { API_URL: 'http://localhost:3000', PUBLIC_API_URL: 'http://localhost:3000', ORIGIN: 'http://localhost:4173', PORT: '4173' }
+        run: |
+          nohup node build > web.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:4173/ > /dev/null && break; sleep 1; done
+      - name: Walkthrough (sign in, book, pay, confirm, dispute, admin, join as fundi)
+        working-directory: web
+        run: node tests/walkthrough.mjs
+      - name: Logs on failure
+        if: failure()
+        run: tail -100 api/api.log web/web.log || true
+
+  mobile:
+    name: Android app (analyze, test, build APK)
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: mobile } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: ./tool/setup_android.sh
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - name: Build release APKs (one per CPU type, smaller downloads)
+        run: flutter build apk --release --split-per-abi --dart-define=API_URL=${{ vars.API_URL || 'https://api.fundi.example' }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fundi-apks
+          path: mobile/build/app/outputs/flutter-apk/*.apk
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t fundi-api ./api
+      - run: docker build -t fundi-web ./web

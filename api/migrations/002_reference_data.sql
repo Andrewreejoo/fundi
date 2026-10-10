@@ -1,0 +1,40 @@
+-- Trade categories. Chichewa (ny) and Tumbuka (tum) names are drafts: have native speakers review before launch.
+INSERT INTO categories (slug, name_en, name_ny, name_tum, icon, pricing_unit, sort) VALUES
+  ('plumbing',   'Plumbing',                 'Mapaipi',        'Mapayipi',       'droplet',  'per_job',  10),
+  ('electrical', 'Electrical and solar',     'Magetsi',        'Magetsi',        'bolt',     'per_job',  20),
+  ('welding',    'Welding',                  'Kuwotcherera',   'Kuwotchera',     'flame',    'per_item', 30),
+  ('carpentry',  'Carpentry',                'Ukalipentala',   'Ukalipentala',   'hammer',   'per_item', 40),
+  ('building',   'Building and painting',    'Omanga nyumba',  'Ŵazengi',        'bricks',   'per_day',  50),
+  ('tailoring',  'Tailoring',                'Usoka',          'Usoni',          'scissors', 'per_item', 60),
+  ('salon',      'Salon and spa',            'Salon',          'Salon',          'comb',     'per_service', 70),
+  ('mechanics',  'Mechanics',                'Makaniko',       'Makaniko',       'car',      'per_job',  80),
+  ('crafts',     'Crafts',                   'Zaluso',         'Vyaluso',        'basket',   'per_item', 90),
+  ('repairs',    'Phone and appliance repair','Okonza zipangizo','Ŵakunozga',    'phone',    'per_job', 100);
+
+-- Places. Coordinates are APPROXIMATE centres for search when GPS is off; refine in the admin later.
+INSERT INTO places (district, name, kind, geog) VALUES
+  ('Lilongwe','City Centre','area',  ST_GeogFromText('POINT(33.787 -13.958)')),
+  ('Lilongwe','Old Town (Area 2)','area', ST_GeogFromText('POINT(33.783 -13.985)')),
+  ('Lilongwe','Area 18','area',      ST_GeogFromText('POINT(33.752 -13.958)')),
+  ('Lilongwe','Area 25','area',      ST_GeogFromText('POINT(33.790 -13.905)')),
+  ('Lilongwe','Area 47','area',      ST_GeogFromText('POINT(33.742 -13.948)')),
+  ('Lilongwe','Area 49','area',      ST_GeogFromText('POINT(33.752 -13.938)')),
+  ('Lilongwe','Area 36','area',      ST_GeogFromText('POINT(33.770 -14.010)')),
+  ('Lilongwe','Kanengo','area',      ST_GeogFromText('POINT(33.790 -13.870)')),
+  ('Blantyre','City Centre','area',  ST_GeogFromText('POINT(35.005 -15.786)')),
+  ('Blantyre','Limbe','area',        ST_GeogFromText('POINT(35.051 -15.813)')),
+  ('Blantyre','Ndirande','area',     ST_GeogFromText('POINT(35.040 -15.780)')),
+  ('Blantyre','Chilomoni','area',    ST_GeogFromText('POINT(34.980 -15.790)')),
+  ('Blantyre','Bangwe','area',       ST_GeogFromText('POINT(35.080 -15.820)')),
+  ('Mzuzu','City Centre','area',     ST_GeogFromText('POINT(34.021 -11.466)')),
+  ('Mzuzu','Katoto','area',          ST_GeogFromText('POINT(34.010 -11.450)')),
+  ('Mzuzu','Luwinga','area',         ST_GeogFromText('POINT(34.040 -11.430)')),
+  ('Mzuzu','Chibavi','area',         ST_GeogFromText('POINT(34.030 -11.480)')),
+  ('Zomba','Zomba town','town',      ST_GeogFromText('POINT(35.318 -15.386)')),
+  ('Kasungu','Kasungu boma','town',  ST_GeogFromText('POINT(33.483 -13.033)')),
+  ('Mangochi','Mangochi boma','town',ST_GeogFromText('POINT(35.264 -14.478)')),
+  ('Salima','Salima boma','town',    ST_GeogFromText('POINT(34.459 -13.780)')),
+  ('Karonga','Karonga boma','town',  ST_GeogFromText('POINT(33.933 -9.933)')),
+  ('Dedza','Dedza boma','town',      ST_GeogFromText('POINT(34.333 -14.378)')),
+  ('Mchinji','Mchinji boma','town',  ST_GeogFromText('POINT(32.880 -13.798)')),
+  ('Machinga','Liwonde','town',      ST_GeogFromText('POINT(35.233 -15.067)'));

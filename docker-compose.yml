@@ -1,0 +1,47 @@
+# Local stack: PostGIS + API + website.  docker compose up --build
+# Website: http://localhost:3001   API: http://localhost:3000
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: fundi
+      POSTGRES_PASSWORD: fundi
+      POSTGRES_DB: fundi
+    ports: ["5432:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fundi"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./api
+    depends_on:
+      db: { condition: service_healthy }
+    env_file:
+      - path: ./api/.env
+        required: false
+    environment:
+      DATABASE_URL: postgres://fundi:fundi@db:5432/fundi
+      PUBLIC_API_URL: http://localhost:3000
+      # Local defaults; override in api/.env. Never use these in production.
+      NODE_ENV: ${NODE_ENV:-development}
+      DEV_OTP_ECHO: ${DEV_OTP_ECHO:-true}
+      PAYMENTS_DRIVER: ${PAYMENTS_DRIVER:-fake}
+      ADMIN_PHONES: ${ADMIN_PHONES:-0999000001}
+      UPLOAD_DIR: /app/uploads
+    ports: ["3000:3000"]
+    volumes: [uploads:/app/uploads]
+
+  web:
+    build: ./web
+    depends_on: [api]
+    environment:
+      API_URL: http://api:3000
+      PUBLIC_API_URL: http://localhost:3000
+      ORIGIN: http://localhost:3001
+    ports: ["3001:3001"]
+
+volumes:
+  dbdata:
+  uploads:
