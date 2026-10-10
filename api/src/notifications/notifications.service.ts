@@ -65,6 +65,21 @@ export class NotificationsService {
     }
   }
 
+  /** Email the site admins. Never throws: a failed email must not break sign-up. Does nothing until configured. */
+  async emailAdmins(subject: string, text: string) {
+    if (!config.resendApiKey || config.adminEmails.length === 0) return;
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${config.resendApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: config.emailFrom, to: config.adminEmails, subject, text }),
+      });
+      if (!res.ok) throw new Error(`Resend HTTP ${res.status}: ${await res.text()}`);
+    } catch (e) {
+      this.log.warn(`Admin email failed: ${(e as Error).message}`);
+    }
+  }
+
   list(userId: string) {
     return this.db.query(
       `SELECT id, kind, title, body, link, read_at, created_at FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50`,

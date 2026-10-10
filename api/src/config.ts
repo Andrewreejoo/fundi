@@ -53,6 +53,12 @@ export const config = {
   get atSenderId() { return str('AT_SENDER_ID', ''); },
   get atBaseUrl() { return str('AT_BASE_URL', 'https://api.sandbox.africastalking.com'); },
 
+  /** Email to the site owner(s) when something needs approval. Uses Resend (resend.com); off until RESEND_API_KEY and ADMIN_EMAILS are set. */
+  get resendApiKey() { return str('RESEND_API_KEY', ''); },
+  get adminEmails() { return str('ADMIN_EMAILS', '').split(',').map((s) => s.trim()).filter(Boolean); },
+  get emailFrom() { return str('EMAIL_FROM', 'GalimotoYanga <onboarding@resend.dev>'); },
+  get siteUrl() { return str('SITE_URL', 'https://galimotoyanga.com').replace(/\/$/, ''); },
+
   get paymentsDriver() { return str('PAYMENTS_DRIVER', this.demoMode ? 'fake' : 'paychangu') as 'paychangu' | 'fake'; },
   get paychanguSecretKey() { return str('PAYCHANGU_SECRET_KEY', ''); },
   get paychanguWebhookSecret() { return str('PAYCHANGU_WEBHOOK_SECRET', ''); },

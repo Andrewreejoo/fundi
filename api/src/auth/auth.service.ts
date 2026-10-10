@@ -161,6 +161,11 @@ export class AuthService {
       [phone, input.name.trim(), await argon2.hash(input.pin), input.note?.trim() || null, idFile, selfieFile],
     );
     await this.deleteFiles([old?.id_file_id, old?.selfie_file_id]);
+    const who = input.name.trim().replace(/[\r\n]+/g, ' ');
+    void this.notifications.emailAdmins(
+      `New sign-up request: ${who}`,
+      `${who} (${phone}) asked for an account on GalimotoYanga.\n\nReview the ID photo and selfie, then approve or decline:\n${config.siteUrl}/admin/access\n`,
+    );
     return { ok: true };
   }
 
