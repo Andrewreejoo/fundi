@@ -12,6 +12,12 @@
 </script>
 
 <a class="skip" href="#main">Skip to content</a>
+{#if data.demo}
+  <div class="demo" role="note">
+    Demo site: sign-in codes appear on screen and payments are simulated, no real money moves.
+    Admin login: <strong>0999 000 001</strong>
+  </div>
+{/if}
 <header class="site">
   <div class="wrap row between bar">
     <a href="/" class="logo" aria-label="Fundi home">fundi</a>
@@ -52,6 +58,7 @@
 </footer>
 
 <style>
+  .demo { background: #fff6e6; color: #5c4000; border-bottom: 1px solid #f0d9a8; padding: 8px 20px; font-size: 14px; text-align: center; }
   .skip { position: absolute; left: -999px; top: 8px; background: #fff; padding: 8px 12px; border-radius: 8px; z-index: 10; }
   .skip:focus { left: 8px; }
   header.site { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }

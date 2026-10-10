@@ -1,0 +1,42 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo -> Apply.
+# Creates one free web service (API + website in one container) and one free PostgreSQL database.
+services:
+  - type: web
+    name: fundi
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fundi-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Public demo: sign-in codes shown on screen, simulated payments, demo fundis.
+      # For real users: set DEMO_MODE=false and add the SMS and PayChangu keys below.
+      - key: DEMO_MODE
+        value: "true"
+      - key: ADMIN_PHONES
+        value: "0999000001"
+      - key: SMS_DRIVER
+        value: log
+      - key: PAYCHANGU_SECRET_KEY
+        sync: false
+      - key: PAYCHANGU_WEBHOOK_SECRET
+        sync: false
+      - key: AT_API_KEY
+        sync: false
+
+databases:
+  - name: fundi-db
+    plan: free
+    region: frankfurt
+    databaseName: fundi
+    user: fundi
+    postgresMajorVersion: "16"

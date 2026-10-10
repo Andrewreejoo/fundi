@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+web/build
+web/.svelte-kit
+**/uploads
+**/.env
+mobile
+.git

@@ -6,5 +6,7 @@ export default {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter(),
+    // Origin is checked in hooks.server.ts instead, so the /api pass-through can accept app uploads.
+    csrf: { trustedOrigins: ['*'] },
   },
 };

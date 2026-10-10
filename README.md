@@ -14,6 +14,18 @@ The USSD channel is **not built yet** (deliberately deferred). The API is ready 
 
 ---
 
+## Put it online (Render, free)
+
+`render.yaml` describes the whole deployment: one free web service (API + website in one container, see `Dockerfile` and `deploy/start.sh`) and one free PostgreSQL database in Frankfurt.
+
+1. Sign in at https://dashboard.render.com with GitHub.
+2. **New → Blueprint**, choose this repository, click **Apply**. The first build takes about 5 to 10 minutes.
+3. Open the `fundi` service's URL (`https://fundi-xxxx.onrender.com`).
+
+It starts in **demo mode** (`DEMO_MODE=true`): sign-in codes appear on screen, payments are simulated, and 9 demo fundis are loaded. Admin: `0999 000 001`. The Android app uses `https://<that URL>/api` as its `API_URL`.
+
+Free-tier limits: the service sleeps after 15 minutes idle (first visit then takes about a minute), the free database expires after 30 days, and uploaded photos are lost on restart (no disk on the free plan). For real users: a paid instance with a disk or S3 storage, `DEMO_MODE=false`, and SMS + PayChangu keys in the service's Environment tab.
+
 ## Quick start (Docker)
 
 ```bash

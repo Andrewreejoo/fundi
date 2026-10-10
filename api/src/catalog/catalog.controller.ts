@@ -20,6 +20,7 @@ export class CatalogController {
   settings() {
     return {
       currency: 'MWK',
+      demo: config.demoMode,
       protectionFeePercent: config.protectionFeePercent,
       protectionFeeMinMwk: config.protectionFeeMin,
       commissionPercent: config.commissionPercent,

@@ -16,8 +16,16 @@ export function configureApp(app: INestApplication) {
 async function bootstrap() {
   await migrate(config.databaseUrl, (m) => Logger.log(m, 'Migrate'));
   const app = configureApp(await NestFactory.create(AppModule, { rawBody: true }));
-  if (config.isProd && (config.jwtAccessSecret.startsWith('dev-') || config.devOtpEcho)) {
-    throw new Error('Refusing to start: set real JWT secrets and DEV_OTP_ECHO=false in production');
+  if (config.isProd && config.jwtAccessSecret.startsWith('dev-')) {
+    throw new Error('Refusing to start: set real JWT secrets in production');
+  }
+  if (config.isProd && config.devOtpEcho && !config.demoMode) {
+    throw new Error('Refusing to start: DEV_OTP_ECHO is for development only (use DEMO_MODE=true for a public demo)');
+  }
+  if (config.demoMode) {
+    Logger.warn('DEMO MODE: SMS codes are shown on screen and payments are simulated. Not for real customers.', 'Bootstrap');
+    const { seed } = await import('./db/seed');
+    await seed((m) => Logger.log(m, 'Seed'));
   }
   if (config.paymentsDriver === 'paychangu' && !config.paychanguSecretKey) {
     Logger.warn('PAYMENTS_DRIVER=paychangu but PAYCHANGU_SECRET_KEY is empty: payments will fail until you add your test keys', 'Bootstrap');

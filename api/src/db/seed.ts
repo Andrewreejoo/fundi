@@ -35,9 +35,9 @@ const DEMO = [
     listings: [['Phone screen replacement', 'from', 20000], ['Fridge repair', 'quote', null]] },
 ];
 
-async function seed() {
-  if (config.isProd) throw new Error('Refusing to seed demo data in production');
-  await migrate();
+export async function seed(log: (m: string) => void = console.log) {
+  if (config.isProd && !config.demoMode) throw new Error('Refusing to seed demo data in production (set DEMO_MODE=true for a demo deployment)');
+  await migrate(config.databaseUrl, log);
   const c = new Client({ connectionString: config.databaseUrl });
   await c.connect();
   try {
@@ -68,7 +68,7 @@ async function seed() {
       }
     }
     await c.query('COMMIT');
-    console.log(`Seeded ${DEMO.length} demo providers (phones +26588800010x).`);
+    log(`Demo data ready (${DEMO.length} fundis, phones +26588800010x).`);
   } catch (e) {
     await c.query('ROLLBACK');
     throw e;
@@ -77,4 +77,4 @@ async function seed() {
   }
 }
 
-seed().catch((e) => { console.error(e); process.exit(1); });
+if (require.main === module) seed().catch((e) => { console.error(e); process.exit(1); });

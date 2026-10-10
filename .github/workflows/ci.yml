@@ -107,3 +107,5 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t fundi-api ./api
       - run: docker build -t fundi-web ./web
+      - name: Combined image (used by render.yaml)
+        run: docker build -t fundi .

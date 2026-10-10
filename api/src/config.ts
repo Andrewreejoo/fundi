@@ -43,7 +43,9 @@ export const config = {
   get accessTokenTtl() { return str('ACCESS_TOKEN_TTL', '15m'); },
   get refreshTokenDays() { return num('REFRESH_TOKEN_DAYS', 30); },
   get adminPhones() { return str('ADMIN_PHONES', '').split(',').map((s) => s.trim()).filter(Boolean); },
-  get devOtpEcho() { return bool('DEV_OTP_ECHO', false); },
+  get devOtpEcho() { return bool('DEV_OTP_ECHO', false) || this.demoMode; },
+  /** Public demo deployment: SMS codes shown on screen, simulated payments, demo fundis. Never for real users. */
+  get demoMode() { return bool('DEMO_MODE', false); },
 
   get smsDriver() { return str('SMS_DRIVER', 'log') as 'log' | 'africastalking'; },
   get atUsername() { return str('AT_USERNAME', 'sandbox'); },
@@ -51,7 +53,7 @@ export const config = {
   get atSenderId() { return str('AT_SENDER_ID', ''); },
   get atBaseUrl() { return str('AT_BASE_URL', 'https://api.sandbox.africastalking.com'); },
 
-  get paymentsDriver() { return str('PAYMENTS_DRIVER', 'paychangu') as 'paychangu' | 'fake'; },
+  get paymentsDriver() { return str('PAYMENTS_DRIVER', this.demoMode ? 'fake' : 'paychangu') as 'paychangu' | 'fake'; },
   get paychanguSecretKey() { return str('PAYCHANGU_SECRET_KEY', ''); },
   get paychanguWebhookSecret() { return str('PAYCHANGU_WEBHOOK_SECRET', ''); },
   get paychanguBaseUrl() { return str('PAYCHANGU_BASE_URL', 'https://api.paychangu.com').replace(/\/$/, ''); },
