@@ -19,7 +19,7 @@
 </script>
 
 <svelte:head>
-  <title>Galimoto: buy or rent cars already in Malawi</title>
+  <title>GalimotoYanga: buy or rent cars already in Malawi</title>
   <meta name="description" content="Used cars already in Malawi, duty paid and registered. Buy from dealers and private sellers in Lilongwe, Blantyre and Mzuzu, or hire a car by the day. Reserve with Airtel Money or TNM Mpamba." />
 </svelte:head>
 

@@ -4,7 +4,7 @@
   let { data, form } = $props();
 </script>
 
-<svelte:head><title>Sellers · Admin · Galimoto</title></svelte:head>
+<svelte:head><title>Sellers · Admin · GalimotoYanga</title></svelte:head>
 
 <div class="row between"><h1>Sellers</h1>
   <form method="GET" class="row" style="--gap:6px"><input name="q" value={data.q} placeholder="Name or phone" aria-label="Search sellers" /><button class="btn dark sm">Search</button></form>

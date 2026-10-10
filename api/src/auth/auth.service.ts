@@ -39,7 +39,7 @@ export class AuthService {
       `INSERT INTO otp_codes (phone, code_hash, expires_at) VALUES ($1,$2, now() + ($3 || ' minutes')::interval)`,
       [phone, sha256(`${phone}:${code}`), String(OTP_TTL_MIN)],
     );
-    await this.notifications.sms(phone, `Galimoto code: ${code}. Do not share it with anyone.`);
+    await this.notifications.sms(phone, `GalimotoYanga code: ${code}. Do not share it with anyone.`);
     return { ok: true, phone, expiresInMinutes: OTP_TTL_MIN, ...(config.devOtpEcho ? { devCode: code } : {}) };
   }
 
@@ -72,7 +72,7 @@ export class AuthService {
     } else if (isAdmin && !user.roles.includes('admin')) {
       await this.db.query(`UPDATE users SET roles = array_append(roles, 'admin') WHERE id=$1`, [user.id]);
     }
-    if (user!.status !== 'active') throw new UnauthorizedException('This account is suspended. Contact Galimoto support.');
+    if (user!.status !== 'active') throw new UnauthorizedException('This account is suspended. Contact GalimotoYanga support.');
     return { ...(await this.issueTokens(user!.id)), isNew, hasPin: !!user!.pin_hash };
   }
 
@@ -86,7 +86,7 @@ export class AuthService {
     if (!user?.pin_hash || !(await argon2.verify(user.pin_hash, pin))) {
       throw new UnauthorizedException('Wrong number or PIN');
     }
-    if (user.status !== 'active') throw new UnauthorizedException('This account is suspended. Contact Galimoto support.');
+    if (user.status !== 'active') throw new UnauthorizedException('This account is suspended. Contact GalimotoYanga support.');
     return this.issueTokens(user.id);
   }
 

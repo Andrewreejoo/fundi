@@ -8,7 +8,7 @@
   const q = (as: string, scope: string) => `/orders?as=${as}&scope=${scope}`;
 </script>
 
-<svelte:head><title>Orders · Galimoto</title></svelte:head>
+<svelte:head><title>Orders · GalimotoYanga</title></svelte:head>
 
 <div class="wrap page">
   <h1>{data.as === 'seller' ? 'Orders for your cars' : 'Your reservations and rentals'}</h1>

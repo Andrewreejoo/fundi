@@ -3,5 +3,5 @@
   let { data } = $props();
 </script>
 
-<svelte:head><title>Cars for sale in Malawi · Galimoto</title></svelte:head>
+<svelte:head><title>Cars for sale in Malawi · GalimotoYanga</title></svelte:head>
 <StockList {data} />

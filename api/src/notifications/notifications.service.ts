@@ -27,7 +27,7 @@ export class NotificationsService {
     );
     if (opts.sms) {
       const user = await this.db.one<{ phone: string }>('SELECT phone FROM users WHERE id = $1', [userId], client);
-      if (user) await this.sms(user.phone, `Galimoto: ${body}`, client);
+      if (user) await this.sms(user.phone, `GalimotoYanga: ${body}`, client);
     }
   }
 

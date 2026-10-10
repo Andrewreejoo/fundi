@@ -4,12 +4,12 @@
   let { data, form } = $props();
   const ACCOUNT: Record<string, string> = {
     cash: 'Cash with payment provider', escrow: 'Held for open orders', seller_payable: 'Owed to sellers',
-    buyer_refundable: 'Owed back to buyers', fee_revenue: 'Galimoto fees',
+    buyer_refundable: 'Owed back to buyers', fee_revenue: 'GalimotoYanga fees',
   };
   const total = $derived(data.ledger.reduce((s: number, a: any) => s + Number(a.balance), 0));
 </script>
 
-<svelte:head><title>Payments · Admin · Galimoto</title></svelte:head>
+<svelte:head><title>Payments · Admin · GalimotoYanga</title></svelte:head>
 
 <h1>Money</h1>
 <section class="panel stack" style="--gap:6px">

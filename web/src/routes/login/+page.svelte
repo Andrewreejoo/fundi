@@ -12,11 +12,11 @@
   };
 </script>
 
-<svelte:head><title>Sign in · Galimoto</title></svelte:head>
+<svelte:head><title>Sign in · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page">
   <div class="panel stack box" style="--gap:16px">
-    <Plate text="GALIMOTO" size="md" />
+    <Plate text="GALIMOTO YANGA" size="md" />
     <h1>Sign in</h1>
     <p class="muted small">Use your phone number. No password, no email needed. Signing in lets you see sellers' numbers, save cars, reserve and hire.</p>
 

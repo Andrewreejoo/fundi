@@ -42,14 +42,14 @@
     : '',
   );
 
-  const shareText = $derived(`${title} on Galimoto: ${page.url.origin}/cars/${c.stock_no}`);
-  const askText = $derived(`Hello, I saw your ${title} (${c.stock_no}) on Galimoto. Is it still available?`);
+  const shareText = $derived(`${title} on GalimotoYanga: ${page.url.origin}/cars/${c.stock_no}`);
+  const askText = $derived(`Hello, I saw your ${title} (${c.stock_no}) on GalimotoYanga. Is it still available?`);
   let busy = $state(false);
   const sub = () => { busy = true; return async ({ update }: any) => { await update({ reset: false }); busy = false; }; };
 </script>
 
 <svelte:head>
-  <title>{title} {rent ? 'for hire' : 'for sale'} · {c.stock_no} · Galimoto</title>
+  <title>{title} {rent ? 'for hire' : 'for sale'} · {c.stock_no} · GalimotoYanga</title>
   <meta name="description" content={`${title} ${c.variant ?? ''}, ${km(c.mileage_km)}, ${c.transmission}, ${c.fuel}. ${rent ? `${mwk(c.daily_rate_mwk)} per day` : mwk(c.price_mwk)} in ${c.area}, ${c.district}.`} />
 </svelte:head>
 
@@ -178,7 +178,7 @@
               <Icon name="shield" size={22} />
               <div class="small">
                 <strong>Reserve it for {Math.round(s.reservationHoldHours / 24)} days with a refundable {mwk(data.deposit)} deposit.</strong>
-                Galimoto holds the deposit. View and test-drive the car, then pay the balance of {mwk(Number(c.price_mwk) - data.deposit)} to the seller.
+                GalimotoYanga holds the deposit. View and test-drive the car, then pay the balance of {mwk(Number(c.price_mwk) - data.deposit)} to the seller.
                 If you don't buy, the deposit comes back to you.
               </div>
             </div>
@@ -203,7 +203,7 @@
           {#if c.seller_verified}<span class="tag verified">Verified seller</span>{/if}
         </div>
         <div class="small muted"><Icon name="pin" size={14} /> {c.seller_address ? `${c.seller_address}, ` : ''}{c.seller_area}, {c.seller_district}</div>
-        <div class="small muted">{c.seller_live_count} cars listed, on Galimoto since {new Date(c.seller_since).getFullYear()}</div>
+        <div class="small muted">{c.seller_live_count} cars listed, on GalimotoYanga since {new Date(c.seller_since).getFullYear()}</div>
         {#if c.seller_phone && !c.is_owner}
           <div class="grid2">
             <a class="btn dark" href={`tel:${c.seller_phone}`}><Icon name="phone" size={18} /> {localPhone(c.seller_phone)}</a>

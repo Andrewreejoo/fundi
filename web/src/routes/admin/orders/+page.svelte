@@ -8,7 +8,7 @@
   let choice = $state<Record<string, string>>({});
 </script>
 
-<svelte:head><title>Orders · Admin · Galimoto</title></svelte:head>
+<svelte:head><title>Orders · Admin · GalimotoYanga</title></svelte:head>
 
 <h1>Problems reported</h1>
 {#if form?.error}<p class="alert error">{form.error}</p>{/if}

@@ -7,7 +7,7 @@
   const unread = $derived(data.notifications.filter((n: any) => !n.read_at).length);
 </script>
 
-<svelte:head><title>Your account · Galimoto</title></svelte:head>
+<svelte:head><title>Your account · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack" style="--gap:16px">
   <h1>Your account</h1>

@@ -1,4 +1,4 @@
-<svelte:head><title>Privacy · Galimoto</title></svelte:head>
+<svelte:head><title>Privacy · GalimotoYanga</title></svelte:head>
 <div class="narrow page stack">
   <h1>Privacy</h1>
   <p class="alert info">[Placeholder. Replace with the privacy notice approved by your lawyer and Data Protection Officer under Malawi's Data Protection Act 2024 before launch.]</p>

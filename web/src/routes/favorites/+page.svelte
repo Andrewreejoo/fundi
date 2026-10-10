@@ -3,7 +3,7 @@
   let { data } = $props();
 </script>
 
-<svelte:head><title>Saved cars · Galimoto</title></svelte:head>
+<svelte:head><title>Saved cars · GalimotoYanga</title></svelte:head>
 
 <div class="wrap page">
   <h1>Saved cars</h1>

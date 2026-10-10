@@ -7,7 +7,7 @@ import { api, createApp, login, resetDb } from './helpers';
 /**
  * End-to-end: real HTTP, real PostgreSQL/PostGIS, simulated mobile money (fake driver: wallets ending in 1 fail).
  */
-describe('Galimoto car marketplace API', () => {
+describe('GalimotoYanga car marketplace API', () => {
   let app: INestApplication;
   let dealer: string;   // unverified dealer, becomes verified later
   let owner: string;    // rental owner (verified by admin)

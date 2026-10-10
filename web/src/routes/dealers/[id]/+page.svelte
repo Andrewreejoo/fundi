@@ -5,7 +5,7 @@
   const s = $derived(data.seller);
 </script>
 
-<svelte:head><title>{s.name} · Galimoto</title></svelte:head>
+<svelte:head><title>{s.name} · GalimotoYanga</title></svelte:head>
 
 <div class="wrap page">
   <header class="panel head">
@@ -18,7 +18,7 @@
     <div class="stack" style="--gap:6px; align-items:flex-end">
       {#if s.verified}<span class="tag verified">Verified seller</span>{/if}
       <span class="small muted">{s.live_count} cars listed, {s.sold_count} sold</span>
-      <span class="small muted">On Galimoto since {new Date(s.created_at).getFullYear()}</span>
+      <span class="small muted">On GalimotoYanga since {new Date(s.created_at).getFullYear()}</span>
     </div>
   </header>
 

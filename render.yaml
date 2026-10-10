@@ -1,6 +1,6 @@
 # Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo -> Apply.
 # Creates one free web service (API + website in one container) and one free PostgreSQL database.
-# The service keeps its original name "fundi" so the existing Render service and URL carry on; the site is Galimoto.
+# The service keeps its original name "fundi" so the existing Render service and URL carry on; the site is GalimotoYanga.
 services:
   - type: web
     name: fundi

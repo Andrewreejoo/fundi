@@ -3,7 +3,7 @@
   import Plate from '$lib/components/Plate.svelte';
 </script>
 
-<svelte:head><title>{page.status === 404 ? 'Not found' : 'Error'} · Galimoto</title></svelte:head>
+<svelte:head><title>{page.status === 404 ? 'Not found' : 'Error'} · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack err" style="--gap:14px">
   <Plate text={String(page.status)} size="xl" />

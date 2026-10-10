@@ -7,7 +7,7 @@
   const TABS = [['pending', 'To check'], ['live', 'Live'], ['rejected', 'Sent back'], ['paused', 'Paused'], ['sold', 'Sold']];
 </script>
 
-<svelte:head><title>Listings · Admin · Galimoto</title></svelte:head>
+<svelte:head><title>Listings · Admin · GalimotoYanga</title></svelte:head>
 
 <div class="row between"><h1>Listings</h1>
   <nav class="filters" aria-label="Status">{#each TABS as [k, l]}<a href={`?status=${k}`} aria-current={data.status === k ? 'page' : undefined}>{l}</a>{/each}</nav>

@@ -12,7 +12,7 @@
   let busy = $state(false);
 </script>
 
-<svelte:head><title>Sell or hire out your car · Galimoto</title></svelte:head>
+<svelte:head><title>Sell or hire out your car · GalimotoYanga</title></svelte:head>
 
 <div class="wrap page sell">
   <section class="intro stack" style="--gap:14px">
@@ -25,7 +25,7 @@
     </ul>
     <div class="fees panel stack" style="--gap:6px">
       <strong>What it costs</strong>
-      <span class="small">Listing is free. When a car sells through a reservation, Galimoto keeps {s.saleFeePercent}% of the price, taken from the deposit. On rentals we keep {s.rentalCommissionPercent}% of each booking.</span>
+      <span class="small">Listing is free. When a car sells through a reservation, GalimotoYanga keeps {s.saleFeePercent}% of the price, taken from the deposit. On rentals we keep {s.rentalCommissionPercent}% of each booking.</span>
     </div>
   </section>
 

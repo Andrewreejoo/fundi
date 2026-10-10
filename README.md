@@ -1,8 +1,8 @@
-# Galimoto
+# GalimotoYanga
 
 A car marketplace for Malawi, modelled on how BE FORWARD works but only for **cars already in the country**: duty paid, on the road, ready to view. Buyers browse stock by make, price, body type and district, then **reserve a car with a refundable deposit** paid by **Airtel Money** or **TNM Mpamba**. A **Rent a car** tab lists cars for hire by the day, with or without a driver. Dealers, car hire businesses and private sellers list their own cars.
 
-"Galimoto" (Chichewa for car) is a working name.
+The name means "my car" in Chichewa.
 
 | Folder | What | Stack |
 | --- | --- | --- |

@@ -3,7 +3,7 @@
   let { data, form } = $props();
 </script>
 
-<svelte:head><title>List a car · Galimoto</title></svelte:head>
+<svelte:head><title>List a car · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack" style="--gap:14px">
   <a href="/seller" class="small">← Seller dashboard</a>

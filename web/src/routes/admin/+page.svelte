@@ -11,7 +11,7 @@
   const maxMake = $derived(Math.max(1, ...o.byMake.map((m: any) => Number(m.sale) + Number(m.rent))));
 </script>
 
-<svelte:head><title>Admin · Galimoto</title></svelte:head>
+<svelte:head><title>Admin · GalimotoYanga</title></svelte:head>
 
 <div class="row between">
   <h1>Overview</h1>

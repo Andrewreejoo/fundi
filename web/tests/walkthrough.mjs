@@ -67,7 +67,7 @@ for (const p of ['/', '/cars', '/rent', '/cars?make=nissan', '/cars?body=suv&sor
   ok(r.status === 200, `GET ${p} -> ${r.status}`);
 }
 const home = await buyer.get('/');
-ok(home.html.includes('Rent a car') && home.html.includes('GALIMOTO'), 'home has the Buy/Rent tabs and plate logo');
+ok(home.html.includes('Rent a car') && home.html.includes('GALIMOTO YANGA'), 'home has the Buy/Rent tabs and plate logo');
 const list = await buyer.get('/cars?make=nissan');
 ok(list.html.includes('GM10001') && list.html.includes('X-Trail'), 'Nissan filter lists the silver X-Trail');
 const search = await buyer.get('/cars?q=GM10001');
@@ -135,7 +135,7 @@ const dash = await dealer.get('/seller');
 ok(dash.status === 200 && dash.html.includes('Needs your attention') && dash.html.includes('Chikondi Walk'), 'dealer dashboard shows the reservation');
 const sellerOrder = await dealer.get(orderPath);
 // MWK 32,000,000 car: deposit capped at 500,000; fee 1% = 320,000; dealer receives 180,000 (plus the balance at handover).
-ok(sellerOrder.html.includes('You receive from Galimoto') && sellerOrder.html.includes('180,000'), 'dealer sees net payout of MWK 180,000');
+ok(sellerOrder.html.includes('You receive from GalimotoYanga') && sellerOrder.html.includes('180,000'), 'dealer sees net payout of MWK 180,000');
 const handover = await dealer.post(`${orderPath}?/handover`, {});
 ok(handover.status === 200, 'dealer marks handed over');
 const done = await buyer.post(`${orderPath}?/complete`, {});

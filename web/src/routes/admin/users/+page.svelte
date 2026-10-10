@@ -5,7 +5,7 @@
   const sure = (e: SubmitEvent) => { if (!confirm('Suspend this user? They are signed out and their live cars are paused.')) e.preventDefault(); };
 </script>
 
-<svelte:head><title>Users · Admin · Galimoto</title></svelte:head>
+<svelte:head><title>Users · Admin · GalimotoYanga</title></svelte:head>
 
 <div class="row between"><h1>Users</h1>
   <form method="GET" class="row" style="--gap:6px"><input name="phone" value={data.phone} placeholder="Phone number" aria-label="Search by phone" /><button class="btn dark sm">Search</button></form>

@@ -4,7 +4,7 @@
   let { data } = $props();
 </script>
 
-<svelte:head><title>Messages · Galimoto</title></svelte:head>
+<svelte:head><title>Messages · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack">
   <h1>Messages</h1>

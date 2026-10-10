@@ -12,7 +12,7 @@
   let text = $state('');
 </script>
 
-<svelte:head><title>{otherName} · Messages · Galimoto</title></svelte:head>
+<svelte:head><title>{otherName} · Messages · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack" style="--gap:12px">
   <a href="/messages" class="small"><Icon name="back" size={15} /> All messages</a>
@@ -31,7 +31,7 @@
     <h1>{otherName}</h1>
     <div class="row" style="--gap:6px">
       <a class="btn sm dark" href={`tel:${otherPhone}`}><Icon name="phone" size={16} /> {localPhone(otherPhone)}</a>
-      <a class="btn sm plain" href={whatsapp(otherPhone, `Hello, about the ${carTitle(t)} (${t.stock_no}) on Galimoto.`)} target="_blank" rel="noopener"><Icon name="whatsapp" size={16} /> WhatsApp</a>
+      <a class="btn sm plain" href={whatsapp(otherPhone, `Hello, about the ${carTitle(t)} (${t.stock_no}) on GalimotoYanga.`)} target="_blank" rel="noopener"><Icon name="whatsapp" size={16} /> WhatsApp</a>
     </div>
   </div>
 

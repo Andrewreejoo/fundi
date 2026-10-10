@@ -31,7 +31,7 @@
   const confirmFirst = (msg: string) => (e: SubmitEvent) => { if (!confirm(msg)) e.preventDefault(); };
 </script>
 
-<svelte:head><title>Order {o.ref} · Galimoto</title></svelte:head>
+<svelte:head><title>Order {o.ref} · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack" style="--gap:14px">
   <div class="row between small">
@@ -55,18 +55,18 @@
   <section class="panel money">
     {#if res}
       <div class="row between"><span>Car price</span><span class="price">{mwk(o.price_mwk)}</span></div>
-      <div class="row between"><span>Deposit paid through Galimoto</span><span class="price">{mwk(o.amount_mwk)}</span></div>
+      <div class="row between"><span>Deposit paid through GalimotoYanga</span><span class="price">{mwk(o.amount_mwk)}</span></div>
       <div class="row between strong"><span>{o.role === 'seller' ? 'Buyer pays you at handover' : 'Balance to pay the seller when you buy'}</span><span class="price">{mwk(o.balance_due_mwk)}</span></div>
     {:else}
       <div class="row between"><span>{mwk(o.daily_rate_mwk)} per day{o.with_driver ? ` + ${mwk(o.driver_rate_mwk)} driver` : ''} × {o.days}</span><span class="price">{mwk(o.amount_mwk)}</span></div>
     {/if}
     {#if o.role === 'seller'}
-      <div class="row between muted small"><span>Galimoto fee</span><span>−{mwk(o.fee_mwk)}</span></div>
-      <div class="row between strong"><span>You receive from Galimoto</span><span class="price">{mwk(o.seller_net_mwk)}</span></div>
+      <div class="row between muted small"><span>GalimotoYanga fee</span><span>−{mwk(o.fee_mwk)}</span></div>
+      <div class="row between strong"><span>You receive from GalimotoYanga</span><span class="price">{mwk(o.seller_net_mwk)}</span></div>
     {/if}
     <p class="small held">
       <Icon name="shield" size={16} />
-      {#if ['reserved', 'confirmed', 'handed_over', 'returned', 'disputed'].includes(o.status)}The money is held by Galimoto until the {res ? 'sale' : 'rental'} is complete.
+      {#if ['reserved', 'confirmed', 'handed_over', 'returned', 'disputed'].includes(o.status)}The money is held by GalimotoYanga until the {res ? 'sale' : 'rental'} is complete.
       {:else if o.status === 'completed'}Paid out to the seller.
       {:else if o.status === 'refunded'}Refunded to the buyer.
       {:else if o.status === 'pending_payment'}Nothing is charged until you approve the payment on your phone.
@@ -89,7 +89,7 @@
       </label>
       {#if timeLeft(o.expires_at)}<p class="small muted">Pay within {timeLeft(o.expires_at)} or the {res ? 'reservation' : 'booking'} is released.</p>{/if}
       <button class="btn lg block" disabled={!!busy}>{busy === 'pay' ? 'Sending request…' : `Pay ${mwk(o.amount_mwk)}`}</button>
-      <p class="tiny muted">You will get a PIN prompt from your wallet. Galimoto never sees your PIN.</p>
+      <p class="tiny muted">You will get a PIN prompt from your wallet. GalimotoYanga never sees your PIN.</p>
     </form>
   {/if}
 
@@ -129,7 +129,7 @@
       {:else}
         <div class="row" style="--gap:6px">
           <a class="btn dark sm" href={`tel:${other.phone}`}><Icon name="phone" size={16} /> {localPhone(other.phone)}</a>
-          <a class="btn plain sm" href={whatsapp(other.phone, `Hello, about Galimoto order ${o.ref} (${carTitle(o)}).`)} target="_blank" rel="noopener"><Icon name="whatsapp" size={16} /> WhatsApp</a>
+          <a class="btn plain sm" href={whatsapp(other.phone, `Hello, about GalimotoYanga order ${o.ref} (${carTitle(o)}).`)} target="_blank" rel="noopener"><Icon name="whatsapp" size={16} /> WhatsApp</a>
         </div>
       {/if}
     </section>
@@ -139,7 +139,7 @@
     <section class="alert info stack" style="--gap:4px">
       <strong>Problem reported</strong>
       <span class="small">{o.dispute.reason}</span>
-      {#if o.dispute.status === 'open'}<span class="small">Galimoto support will contact both of you by {dateTime(o.dispute.sla_due_at)}. The money stays held until then.</span>
+      {#if o.dispute.status === 'open'}<span class="small">GalimotoYanga support will contact both of you by {dateTime(o.dispute.sla_due_at)}. The money stays held until then.</span>
       {:else}<span class="small">Decision: {o.dispute.resolution}{o.dispute.resolution === 'split' ? ` (${o.dispute.seller_share_percent}% to the seller)` : ''}. {o.dispute.admin_note ?? ''}</span>{/if}
     </section>
   {/if}
@@ -149,7 +149,7 @@
       <form method="POST" action="?/dispute" class="panel stack" use:enhance={go('dispute')}>
         <label class="field">What went wrong?<textarea name="reason" minlength="5" maxlength="1000" required placeholder={res ? 'e.g. The mileage is not as advertised' : 'e.g. The car was not available on the pick-up day'}></textarea></label>
         <button class="btn danger block" disabled={!!busy}>Report problem</button>
-        <span class="tiny muted">The money stays held while Galimoto support looks into it.</span>
+        <span class="tiny muted">The money stays held while GalimotoYanga support looks into it.</span>
       </form>
     {:else}
       <button class="btn plain block" onclick={() => (showDispute = true)}><Icon name="alert" size={17} /> Report a problem</button>

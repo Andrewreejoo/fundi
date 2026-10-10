@@ -11,7 +11,7 @@
   };
 </script>
 
-<svelte:head><title>Edit {carTitle(c)} · Galimoto</title></svelte:head>
+<svelte:head><title>Edit {carTitle(c)} · GalimotoYanga</title></svelte:head>
 
 <div class="narrow page stack" style="--gap:14px">
   <div class="row between small"><a href="/seller">← Seller dashboard</a><a href={`/cars/${c.stock_no}`}>See it as buyers do</a></div>

@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals, params, cookies }) => {
   try {
     car = await locals.api.get(`/vehicles/${encodeURIComponent(params.stock)}`);
   } catch (e) {
-    if (e instanceof ApiError && (e.status === 404 || e.status === 400)) error(404, 'This car is not on Galimoto any more');
+    if (e instanceof ApiError && (e.status === 404 || e.status === 400)) error(404, 'This car is not on GalimotoYanga any more');
     throw e;
   }
   const { settings } = await catalog(locals.api);

@@ -241,7 +241,7 @@ export class OrdersService {
         if (o.status !== 'reserved') throw new BadRequestException('This reservation is not active');
         await transition(this.db, c, o.id, 'reserved', 'handed_over', user.id, null, { auto_complete_at: auto, expires_at: null });
         await this.notifications.notify(o.buyer_id, 'handed_over', 'Did you get the car?',
-          `The seller says ${o.car} (${o.stock_no}) has been handed over to you. Confirm in Galimoto, or report a problem within ${config.autoCompleteHours} hours. After that the deposit is released to the seller.`,
+          `The seller says ${o.car} (${o.stock_no}) has been handed over to you. Confirm in GalimotoYanga, or report a problem within ${config.autoCompleteHours} hours. After that the deposit is released to the seller.`,
           { link: `/orders/${o.id}`, sms: true }, c);
       } else {
         if (o.status !== 'confirmed') throw new BadRequestException('This rental is not active');
@@ -298,7 +298,7 @@ export class OrdersService {
       );
       for (const uid of [o.buyer_id, o.seller_id]) {
         await this.notifications.notify(uid, 'disputed', `Problem reported on ${o.ref}`,
-          `The money stays held. Galimoto support will contact both of you within ${config.disputeSlaHours} hours.`, { link: `/orders/${o.id}`, sms: true }, c);
+          `The money stays held. GalimotoYanga support will contact both of you within ${config.disputeSlaHours} hours.`, { link: `/orders/${o.id}`, sms: true }, c);
       }
     });
     return this.detail(id, user);

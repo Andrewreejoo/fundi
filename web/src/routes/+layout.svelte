@@ -23,7 +23,7 @@
 
 <header class="top">
   <div class="wrap bar">
-    <a href="/" class="logo" aria-label="Galimoto home"><Plate text="GALIMOTO" size="xl" /></a>
+    <a href="/" class="logo" aria-label="GalimotoYanga home"><Plate text="GALIMOTO YANGA" size="xl" /></a>
     <form class="search" method="GET" action={tab === 'rent' ? '/rent' : '/cars'} role="search">
       <label class="sr-only" for="q">Search cars</label>
       <input id="q" name="q" type="search" value={q} placeholder="Make, model or stock number, e.g. X-Trail or GM10001" />
@@ -63,7 +63,7 @@
 <footer class="foot">
   <div class="wrap cols">
     <div class="stack" style="--gap:8px">
-      <Plate text="GALIMOTO" size="md" />
+      <Plate text="GALIMOTO YANGA" size="md" />
       <p class="small">Cars already in Malawi, duty paid and ready to drive. Buy from dealers and private sellers, or hire a car by the day.</p>
     </div>
     <div class="stack small" style="--gap:6px">
@@ -80,7 +80,7 @@
       <a href="/rent?minSeats=7">7 seats or more</a>
     </div>
     <div class="stack small" style="--gap:6px">
-      <strong>Galimoto</strong>
+      <strong>GalimotoYanga</strong>
       <a href="/how-it-works">How buying and renting works</a>
       <a href="/sell">Sell or hire out your car</a>
       <a href="/privacy">Privacy</a>
@@ -96,6 +96,7 @@
   .top { background: var(--asphalt); color: #fff; }
   .bar { display: flex; align-items: center; gap: 18px; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
   .logo { flex-shrink: 0; text-decoration: none !important; }
+  @media (max-width: 400px) { .logo :global(.xl) { font-size: 23px; letter-spacing: 1px; padding: 3px 9px 2px; } }
   .search { flex: 1 1 320px; display: flex; min-width: 0; }
   .search input { border: 0; border-radius: var(--radius) 0 0 var(--radius); min-height: 44px; }
   .go { width: 52px; border: 0; border-radius: 0 var(--radius) var(--radius) 0; background: var(--plate); color: var(--plate-ink); cursor: pointer; display: grid; place-items: center; }

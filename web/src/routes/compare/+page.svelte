@@ -21,7 +21,7 @@
   ];
 </script>
 
-<svelte:head><title>Compare cars · Galimoto</title></svelte:head>
+<svelte:head><title>Compare cars · GalimotoYanga</title></svelte:head>
 
 <div class="wrap page">
   <div class="row between">

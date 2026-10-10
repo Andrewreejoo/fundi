@@ -22,7 +22,7 @@
   const sure = (msg: string) => (e: SubmitEvent) => { if (!confirm(msg)) e.preventDefault(); };
 </script>
 
-<svelte:head><title>Seller dashboard · Galimoto</title></svelte:head>
+<svelte:head><title>Seller dashboard · GalimotoYanga</title></svelte:head>
 
 <div class="wrap page stack" style="--gap:18px">
   <header class="row between wrap-row">
