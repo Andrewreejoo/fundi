@@ -3,6 +3,7 @@
   <h1>Privacy</h1>
   <p class="alert info">[Placeholder. Replace with the privacy notice approved by your lawyer and Data Protection Officer under Malawi's Data Protection Act 2024 before launch.]</p>
   <p><strong>What we collect.</strong> Your phone number and name, the cars you list, save, enquire about, reserve or hire, your messages with sellers, and payment records. Sellers also give a location and a mobile money number for payouts.</p>
+  <p><strong>ID photo and selfie.</strong> If you ask for an account instead of using an SMS code, we ask for a photo of your national ID and a selfie so we can check who you are. They are kept private, only staff who approve accounts can see them, and we delete them if the request is not approved.</p>
   <p><strong>Who sees it.</strong> A seller's phone number is shown to signed-in visitors on their listings. A buyer's number is shown to the seller only after a reservation or rental is paid. Number plates are shown only if the seller enters them.</p>
   <p><strong>Why.</strong> To run the marketplace, process payments, prevent fraud and resolve problems. We don't sell your data.</p>
   <p><strong>Cookies.</strong> We use cookies to keep you signed in and to remember your compare list and recently viewed cars. No advertising trackers.</p>

@@ -67,6 +67,19 @@ export class AdminController {
     return this.admin.setUserStatus(id, u.id, 'active');
   }
 
+  @Get('access-requests')
+  accessRequests(@Query('status') status?: string) {
+    return this.admin.accessRequests(['approved', 'rejected'].includes(status ?? '') ? status! : 'pending');
+  }
+  @Post('access-requests/:id/approve') @HttpCode(200)
+  approveAccess(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.admin.decideAccess(id, u.id, true);
+  }
+  @Post('access-requests/:id/reject') @HttpCode(200)
+  rejectAccess(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectDto) {
+    return this.admin.decideAccess(id, u.id, false, dto.reason);
+  }
+
   @Get('payments')
   paymentsList(@Query('status') status?: string) {
     return this.admin.paymentsList(status);

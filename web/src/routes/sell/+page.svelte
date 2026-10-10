@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { onMount, tick } from 'svelte';
   import { page } from '$app/state';
   import { localPhone, mwk } from '$lib/format';
   import Icon from '$lib/components/Icon.svelte';
@@ -9,6 +10,14 @@
   const values = $derived((form as any)?.values ?? {});
   const byDistrict = $derived(data.places.reduce((acc: Record<string, any[]>, p: any) => ((acc[p.district] ??= []).push(p), acc), {}));
   let kind = $state('private');
+  // Svelte quirk: the first update after load (choosing dealer or private) resets typed text fields to their
+  // starting values. Flipping `kind` once on load, before anyone types, uses up that first update.
+  onMount(async () => {
+    const was = kind;
+    kind = was === 'private' ? 'dealer' : 'private';
+    await tick();
+    kind = was;
+  });
   let busy = $state(false);
 </script>
 

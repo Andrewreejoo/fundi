@@ -12,7 +12,7 @@ export const actions: Actions = {
   request: async ({ request, locals }) => {
     const f = await request.formData();
     const phone = String(f.get('phone') ?? '');
-    const r = await attempt(() => locals.api.post('/auth/otp/request', { phone }), { phone, step: 'phone' });
+    const r = await attempt(() => locals.api.post('/auth/otp/request', { phone }), { phone, step: 'phone' }, { showUnauthorized: true });
     if (!r.ok) return r.failure;
     return { step: 'code', phone, devCode: r.value.devCode as string | undefined };
   },
@@ -22,7 +22,7 @@ export const actions: Actions = {
     const phone = String(f.get('phone') ?? '');
     const code = String(f.get('code') ?? '').replace(/\D/g, '');
     const next = safeNext(f.get('next'));
-    const r = await attempt(() => locals.api.post('/auth/otp/verify', { phone, code }), { phone, step: 'code' });
+    const r = await attempt(() => locals.api.post('/auth/otp/verify', { phone, code }), { phone, step: 'code' }, { showUnauthorized: true });
     if (!r.ok) return r.failure;
     storeTokens(cookies, r.value, locals.secure);
     redirect(303, r.value.hasPin ? next : `/account?setpin=1&next=${encodeURIComponent(next)}`);
@@ -32,7 +32,7 @@ export const actions: Actions = {
     const f = await request.formData();
     const phone = String(f.get('phone') ?? '');
     const pin = String(f.get('pin') ?? '');
-    const r = await attempt(() => locals.api.post('/auth/pin/login', { phone, pin }), { phone, step: 'pin' });
+    const r = await attempt(() => locals.api.post('/auth/pin/login', { phone, pin }), { phone, step: 'pin' }, { showUnauthorized: true });
     if (!r.ok) return r.failure;
     storeTokens(cookies, r.value, locals.secure);
     redirect(303, safeNext(f.get('next')));

@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { normalizeMwPhone } from '../common/phone';
+import { AuthService } from '../auth/auth.service';
 import { DbService } from '../db/db.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { transition } from '../orders/state';
@@ -14,6 +15,7 @@ export class AdminService {
     private readonly notifications: NotificationsService,
     private readonly paymentsSvc: PaymentsService,
     private readonly ledger: LedgerService,
+    private readonly auth: AuthService,
   ) {}
 
   async overview(days = 7) {
@@ -36,6 +38,7 @@ export class AdminService {
             FROM payments WHERE direction='collect' AND created_at > now() - ($1 || ' days')::interval) AS payment_success_pct,
          (SELECT count(*) FROM inquiries WHERE created_at > now() - ($1 || ' days')::interval) AS inquiries,
          (SELECT count(*) FROM users WHERE created_at > now() - ($1 || ' days')::interval) AS new_users,
+         (SELECT count(*) FROM access_requests WHERE status='pending') AS pending_access,
          (SELECT count(*) FROM disputes WHERE status='open') AS open_disputes,
          (SELECT count(*) FROM payments WHERE direction <> 'collect' AND status='failed') AS failed_payouts`,
       [d],
@@ -178,6 +181,49 @@ export class AdminService {
     }
     await this.db.query(`UPDATE sellers SET status=$2 WHERE user_id=$1`, [id, status]);
     await this.db.audit(adminId, `user.${status}`, 'user', id);
+    return { ok: true };
+  }
+
+  accessRequests(status: string) {
+    return this.db.query(
+      `SELECT id, phone, name, note, status, reason, created_at, decided_at, id_file_id, selfie_file_id
+         FROM access_requests WHERE status=$1 ORDER BY created_at DESC LIMIT 200`,
+      [status],
+    );
+  }
+
+  async decideAccess(id: string, adminId: string, approve: boolean, reason?: string) {
+    const out = await this.db.tx(async (c) => {
+      const r = await this.db.one<{ id: string; phone: string; name: string; pin_hash: string; id_file_id: string | null; selfie_file_id: string | null }>(
+        `SELECT id, phone, name, pin_hash, id_file_id, selfie_file_id FROM access_requests WHERE id=$1 AND status='pending' FOR UPDATE`,
+        [id],
+        c,
+      );
+      if (!r) throw new BadRequestException('Already decided, or not found');
+      if (approve) {
+        await this.db.query(
+          `INSERT INTO users (phone, name, pin_hash) VALUES ($1,$2,$3)
+           ON CONFLICT (phone) DO UPDATE SET pin_hash = COALESCE(users.pin_hash, EXCLUDED.pin_hash), name = COALESCE(users.name, EXCLUDED.name)`,
+          [r.phone, r.name, r.pin_hash],
+          c,
+        );
+      }
+      await this.db.query(
+        `UPDATE access_requests SET status=$2, reason=$3, decided_by=$4, decided_at=now(), updated_at=now() WHERE id=$1`,
+        [id, approve ? 'approved' : 'rejected', approve ? null : reason ?? null, adminId],
+        c,
+      );
+      await this.db.audit(adminId, approve ? 'access.approve' : 'access.reject', 'access_request', id, { phone: r.phone }, c);
+      return r;
+    });
+    if (!approve) {
+      // A rejected applicant's ID and selfie are not kept.
+      await this.db.query('UPDATE access_requests SET id_file_id=NULL, selfie_file_id=NULL WHERE id=$1', [id]);
+      await this.auth.deleteFiles([out.id_file_id, out.selfie_file_id]);
+    }
+    if (approve) {
+      await this.notifications.sms(out.phone, 'GalimotoYanga: your account is approved. Sign in at galimotoyanga.com with your phone number and PIN.');
+    }
     return { ok: true };
   }
 

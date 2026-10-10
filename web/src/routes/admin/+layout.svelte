@@ -7,6 +7,7 @@
     ['/admin/sellers', 'Sellers'],
     ['/admin/orders', 'Orders and disputes'],
     ['/admin/payments', 'Payments'],
+    ['/admin/access', 'Account requests'],
     ['/admin/users', 'Users'],
   ];
 </script>

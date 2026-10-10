@@ -48,7 +48,10 @@
         </label>
         <button class="btn lg block" disabled={busy}>Sign in</button>
       </form>
-      <a class="small" href={`/login?next=${encodeURIComponent(data.next)}`}>Get a code by SMS instead</a>
+      <div class="stack" style="--gap:6px">
+        <a class="small" href={`/login?next=${encodeURIComponent(data.next)}`}>Get a code by SMS instead</a>
+        <a class="small" href="/access">New here? Request an account</a>
+      </div>
     {:else}
       <form method="POST" action="?/request" class="stack" use:enhance={submit}>
         <label class="field">Phone number
@@ -57,7 +60,10 @@
         </label>
         <button class="btn lg block" disabled={busy}>{busy ? 'Sending…' : 'Send me a code'}</button>
       </form>
-      <a class="small" href={`/login?mode=pin&next=${encodeURIComponent(data.next)}`}>I have a PIN</a>
+      <div class="stack" style="--gap:6px">
+        <a class="small" href={`/login?mode=pin&next=${encodeURIComponent(data.next)}`}>I have a PIN</a>
+        <a class="small" href="/access">Not getting a code? Request an account</a>
+      </div>
     {/if}
   </div>
 </div>

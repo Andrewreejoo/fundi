@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { onMount, tick } from 'svelte';
   import Icon from './Icon.svelte';
 
   /** Create/edit form for a listing. Photos are shrunk in the browser (max 1600 px) before upload. */
@@ -7,6 +8,15 @@
     { car?: any; makes: any[]; models: any[]; bodyTypes: any[]; features: any[]; places: any[]; fileBase: string; error?: string; values?: Record<string, any>; submitLabel: string } = $props();
 
   const v = (k: string, fallback: any = '') => values[k] ?? car?.[k] ?? fallback;
+  // Svelte quirk: the first time this form updates after loading (picking Sell or Hire, adding a photo, ticking
+  // a box), it puts every text field back to its starting value and wipes what the seller typed. Flipping
+  // `purpose` once on load, before anyone types, uses up that first update. Browser-tested; keep it.
+  onMount(async () => {
+    const was = purpose;
+    purpose = was === 'sale' ? 'rent' : 'sale';
+    await tick();
+    purpose = was;
+  });
   let purpose = $state<'sale' | 'rent'>('sale');
   let offerDriver = $state(false);
   let selfDrive = $state(true);

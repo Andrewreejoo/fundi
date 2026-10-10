@@ -25,3 +25,10 @@ export class RefreshDto {
 export class UpdateMeDto {
   @IsOptional() @IsString() @Length(2, 80) name?: string;
 }
+
+export class AccessRequestDto {
+  @IsString() @MaxLength(20) phone: string;
+  @IsString() @Length(2, 80) name: string;
+  @Matches(/^\d{4}$/, { message: 'PIN must be 4 digits' }) pin: string;
+  @IsOptional() @IsString() @MaxLength(300) note?: string;
+}

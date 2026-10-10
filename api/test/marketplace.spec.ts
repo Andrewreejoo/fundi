@@ -310,4 +310,66 @@ describe('GalimotoYanga car marketplace API', () => {
       expect(new PayChanguDriver().parseWebhook(body, sig)).toMatchObject({ chargeId: 'GO-ABC-C1', status: 'success' });
     });
   });
+  describe('admin-approved sign-up (no SMS code)', () => {
+    const phone = '0881000077';
+    const jpeg = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=', 'base64');
+    const req = (body: Record<string, string>, photos = true) => {
+      let r = request(app.getHttpServer()).post('/auth/access-request');
+      for (const [k, v] of Object.entries(body)) r = r.field(k, v);
+      if (photos) r = r.attach('idPhoto', jpeg, 'id.jpg').attach('selfie', jpeg, 'me.jpg');
+      return r;
+    };
+
+    it('rejects weak PINs and existing accounts', async () => {
+      await req({ phone, name: 'Chikondi Banda', pin: '1111' }).expect(400);
+      await req({ phone: '0991000003', name: 'Already Here', pin: '7391' }).expect(400);
+    });
+
+    it('needs both an ID photo and a selfie', async () => {
+      const r = await req({ phone, name: 'Chikondi Banda', pin: '7391' }, false).expect(400);
+      expect(r.body.message).toMatch(/national ID/);
+      await request(app.getHttpServer()).post('/auth/access-request').field('phone', phone).field('name', 'Chikondi Banda').field('pin', '7391')
+        .attach('idPhoto', jpeg, 'id.jpg').expect(400);
+    });
+
+    it('a request cannot sign in until an admin approves it', async () => {
+      await req({ phone, name: 'Chikondi Banda', pin: '7391', note: 'Car yard in Blantyre' }).expect(200);
+      const r = await api(app).post('/auth/pin/login', { phone, pin: '7391' }).expect(401);
+      expect(r.body.message).toMatch(/waiting for approval/);
+      const wrong = await api(app).post('/auth/pin/login', { phone, pin: '2580' }).expect(401);
+      expect(wrong.body.message).toBe('Wrong number or PIN');
+      await api(app, buyer).get('/admin/access-requests').expect(403);
+    });
+
+    it('admin approves; the person signs in with number and PIN', async () => {
+      const list = (await api(app, admin).get('/admin/access-requests').expect(200)).body;
+      const mine = list.find((x: any) => x.name === 'Chikondi Banda');
+      expect(mine).toBeTruthy();
+      // ID photo and selfie open for admins only
+      await api(app).get(`/files/${mine.id_file_id}`).expect(403);
+      await api(app, buyer).get(`/files/${mine.selfie_file_id}`).expect(403);
+      await api(app, admin).get(`/files/${mine.id_file_id}`).expect(200);
+      expect((await api(app, admin).get('/admin/overview').expect(200)).body.pending_access).toBe(1);
+      await api(app, admin).post(`/admin/access-requests/${mine.id}/approve`).expect(200);
+      await api(app, admin).post(`/admin/access-requests/${mine.id}/approve`).expect(400);
+      const ok = await api(app).post('/auth/pin/login', { phone, pin: '7391' }).expect(200);
+      expect(ok.body.user.name).toBe('Chikondi Banda');
+      expect(ok.body.user.roles).toEqual(['customer']);
+    });
+
+    it('a rejected request says so', async () => {
+      const p2 = '0881000078';
+      await req({ phone: p2, name: 'Test Person', pin: '7391' }).expect(200);
+      const mine = (await api(app, admin).get('/admin/access-requests').expect(200)).body.find((x: any) => x.name === 'Test Person');
+      await api(app, admin).post(`/admin/access-requests/${mine.id}/reject`, { reason: 'We could not verify you' }).expect(200);
+      await api(app, admin).get(`/files/${mine.id_file_id}`).expect(404); // rejected: photos are deleted
+      const r = await api(app).post('/auth/pin/login', { phone: p2, pin: '7391' }).expect(401);
+      expect(r.body.message).toMatch(/not approved: We could not verify you/);
+    });
+
+    it('locks PIN sign-in after five wrong tries', async () => {
+      for (let i = 0; i < 5; i++) await api(app).post('/auth/pin/login', { phone, pin: '0852' }).expect(401);
+      await api(app).post('/auth/pin/login', { phone, pin: '7391' }).expect(429);
+    });
+  });
 });

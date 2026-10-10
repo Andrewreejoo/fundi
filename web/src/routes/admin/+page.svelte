@@ -4,6 +4,7 @@
   const o = $derived(data.o);
   const todo = $derived([
     { n: o.pending_listings, label: 'listings to check', href: '/admin/listings' },
+    { n: o.pending_access, label: 'account requests', href: '/admin/access' },
     { n: o.unverified_dealers, label: 'dealers to verify', href: '/admin/sellers' },
     { n: o.open_disputes, label: 'open problems', href: '/admin/orders' },
     { n: o.failed_payouts, label: 'failed payouts or refunds', href: '/admin/payments?status=failed' },

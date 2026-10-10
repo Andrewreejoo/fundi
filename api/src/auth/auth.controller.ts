@@ -1,7 +1,9 @@
-import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, Patch, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { AuthUser, CurrentUser, Public } from '../common/auth';
 import { NotificationsService } from '../notifications/notifications.service';
-import { PinLoginDto, RefreshDto, RequestOtpDto, SetPinDto, UpdateMeDto, VerifyOtpDto } from './auth.dto';
+import { AccessRequestDto, PinLoginDto, RefreshDto, RequestOtpDto, SetPinDto, UpdateMeDto, VerifyOtpDto } from './auth.dto';
 import { AuthService } from './auth.service';
 
 @Controller()
@@ -21,6 +23,24 @@ export class AuthController {
   @Public() @Post('auth/pin/login') @HttpCode(200)
   pinLogin(@Body() dto: PinLoginDto) {
     return this.auth.pinLogin(dto.phone, dto.pin);
+  }
+
+  @Public() @Post('auth/access-request') @HttpCode(200)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [{ name: 'idPhoto', maxCount: 1 }, { name: 'selfie', maxCount: 1 }],
+      {
+        storage: memoryStorage(),
+        limits: { fileSize: 6 * 1024 * 1024, files: 2 },
+        fileFilter: (_req, file, cb) =>
+          ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)
+            ? cb(null, true)
+            : cb(new BadRequestException('Photos must be JPG, PNG or WebP'), false),
+      },
+    ),
+  )
+  requestAccess(@Body() dto: AccessRequestDto, @UploadedFiles() files: { idPhoto?: Express.Multer.File[]; selfie?: Express.Multer.File[] }) {
+    return this.auth.requestAccess(dto, files ?? {});
   }
 
   @Post('auth/pin') @HttpCode(200)
