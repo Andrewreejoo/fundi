@@ -1,7 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { apiFor } from '$lib/server/api';
-import { normalizeLang } from '$lib/i18n';
 
 const FORM_TYPES = ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'];
 const HOP_BY_HOP = ['connection', 'keep-alive', 'transfer-encoding', 'content-length', 'content-encoding', 'host'];
@@ -49,10 +48,9 @@ export const handle: Handle = async ({ event, resolve }) => {
   const secure = url.protocol === 'https:';
   event.locals.api = apiFor(event.cookies, event.fetch, secure);
   event.locals.secure = secure;
-  event.locals.lang = normalizeLang(event.cookies.get('fundi_lang'));
   event.locals.user = null;
 
-  if (event.cookies.get('fundi_at') || event.cookies.get('fundi_rt')) {
+  if (event.cookies.get('gm_at') || event.cookies.get('gm_rt')) {
     try {
       event.locals.user = await event.locals.api.get('/me');
     } catch {
@@ -60,7 +58,5 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  return resolve(event, {
-    transformPageChunk: ({ html }) => html.replace('%lang%', event.locals.lang),
-  });
+  return resolve(event);
 };

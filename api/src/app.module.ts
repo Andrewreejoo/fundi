@@ -6,8 +6,6 @@ import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
-import { BookingsController } from './bookings/bookings.controller';
-import { BookingsService } from './bookings/bookings.service';
 import { CatalogController } from './catalog/catalog.controller';
 import { LocationService } from './catalog/location.service';
 import { AuthGuard, Public } from './common/auth';
@@ -19,8 +17,14 @@ import { createDriver, PAYMENT_DRIVER } from './payments/driver';
 import { LedgerService } from './payments/ledger.service';
 import { PaymentsController } from './payments/payments.controller';
 import { PaymentsService } from './payments/payments.service';
-import { ProvidersController } from './providers/providers.controller';
-import { ProvidersService } from './providers/providers.service';
+import { InquiriesController } from './inquiries/inquiries.controller';
+import { InquiriesService } from './inquiries/inquiries.service';
+import { OrdersController } from './orders/orders.controller';
+import { OrdersService } from './orders/orders.service';
+import { SellersController } from './sellers/sellers.controller';
+import { SellersService } from './sellers/sellers.service';
+import { VehiclesController } from './vehicles/vehicles.controller';
+import { VehiclesService } from './vehicles/vehicles.service';
 import { SweeperService } from './scheduler/sweeper.service';
 
 @Controller()
@@ -36,14 +40,14 @@ class HealthController {
 @Module({
   imports: [DbModule, JwtModule.register({}), ScheduleModule.forRoot()],
   controllers: [
-    HealthController, AuthController, CatalogController, FilesController, ProvidersController,
-    BookingsController, PaymentsController, AdminController,
+    HealthController, AuthController, CatalogController, FilesController, SellersController, VehiclesController,
+    InquiriesController, OrdersController, PaymentsController, AdminController,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: PAYMENT_DRIVER, useFactory: createDriver },
-    NotificationsService, AuthService, LocationService, ProvidersService, LedgerService, PaymentsService,
-    BookingsService, AdminService, SweeperService,
+    NotificationsService, AuthService, LocationService, SellersService, VehiclesService, InquiriesService, LedgerService,
+    PaymentsService, OrdersService, AdminService, SweeperService,
   ],
 })
 export class AppModule {}

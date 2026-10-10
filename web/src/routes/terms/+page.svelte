@@ -1,6 +1,10 @@
-<svelte:head><title>Terms · Fundi</title></svelte:head>
-<div class="narrow section stack">
-  <h1 class="page-title">Terms</h1>
-  <p class="alert info">[Placeholder. Replace with terms of service reviewed by a Malawian lawyer before launch, including escrow, fees, refunds and dispute rules.]</p>
-  <p>Escrow: when you pay through Fundi, we hold the money until you confirm the job is done, or 48 hours after the fundi marks it done if you do not reply. If you report a problem, the money stays held until our team decides.</p>
+<svelte:head><title>Terms · Galimoto</title></svelte:head>
+<div class="narrow page stack">
+  <h1>Terms</h1>
+  <p class="alert info">[Placeholder. Have a Malawian lawyer write the final terms before launch.]</p>
+  <p><strong>What Galimoto is.</strong> A marketplace that connects people buying and hiring cars with dealers, car hire businesses and private sellers in Malawi. The seller, not Galimoto, owns each car and is responsible for its description, its papers and its condition.</p>
+  <p><strong>Listings.</strong> Sellers must own the car or have authority to sell or hire it, and the car must be in Malawi with duty paid unless the listing says otherwise. We may remove any listing.</p>
+  <p><strong>Deposits.</strong> A reservation deposit holds a car for the period shown. It is paid to the seller, less our fee, when the buyer confirms the purchase or the seller confirms handover and the buyer doesn't report a problem in time. It is refunded if the reservation is cancelled by the seller, lapses, or a reported problem is decided in the buyer's favour.</p>
+  <p><strong>Rentals.</strong> The full hire is paid up front and released to the owner after the car is returned. Cancelling before the start date gives a full refund.</p>
+  <p><strong>Problems.</strong> If something goes wrong, report it on the order. The money stays held while our team looks into it, and we aim to decide within 3 days.</p>
 </div>

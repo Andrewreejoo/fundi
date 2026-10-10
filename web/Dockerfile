@@ -6,7 +6,7 @@ COPY . .
 RUN npm run build && npm prune --omit=dev
 
 FROM node:22-slim
-ENV NODE_ENV=production PORT=3001
+ENV NODE_ENV=production PORT=3001 BODY_SIZE_LIMIT=64M
 WORKDIR /app
 COPY --from=build /app/build ./build
 COPY --from=build /app/node_modules ./node_modules

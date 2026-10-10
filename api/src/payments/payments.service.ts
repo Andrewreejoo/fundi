@@ -1,9 +1,10 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Operator, normalizeMwPhone, operatorFor } from '../common/phone';
-import { formatMwk, percentOf } from '../common/util';
+import { addHours, formatMwk, percentOf } from '../common/util';
+import { config } from '../config';
 import { DbService, Queryable } from '../db/db.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { transition } from '../bookings/state';
+import { transition } from '../orders/state';
 import { DriverResult, PAYMENT_DRIVER, PaymentDriver } from './driver';
 import { LedgerService } from './ledger.service';
 
@@ -12,7 +13,7 @@ const COLLECT_TIMEOUT_MIN = 30;
 
 interface PaymentRow {
   id: string;
-  booking_id: string;
+  order_id: string;
   direction: 'collect' | 'payout' | 'refund';
   operator: Operator;
   msisdn: string;
@@ -22,6 +23,10 @@ interface PaymentRow {
   attempts: number;
 }
 
+/**
+ * Mobile money in and out of escrow. Buyers pay into the platform's PayChangu balance; the ledger records
+ * who the money belongs to; payouts and refunds go back out to Airtel Money / TNM Mpamba wallets.
+ */
 @Injectable()
 export class PaymentsService {
   private readonly log = new Logger('Payments');
@@ -33,55 +38,53 @@ export class PaymentsService {
     @Inject(PAYMENT_DRIVER) private readonly driver: PaymentDriver,
   ) {}
 
-  // ---------------------------------------------------------------- collect (customer pays into escrow)
+  // ---------------------------------------------------------------- collect
 
-  async startCollect(bookingId: string, customerId: string, payPhone?: string) {
-    const b = await this.db.one(
-      `SELECT b.*, u.phone AS customer_phone, u.name AS customer_name FROM bookings b JOIN users u ON u.id=b.customer_id WHERE b.id=$1`,
-      [bookingId],
+  async startCollect(orderId: string, buyerId: string, payPhone?: string) {
+    const o = await this.db.one(
+      `SELECT o.*, u.phone AS buyer_phone, u.name AS buyer_name FROM orders o JOIN users u ON u.id=o.buyer_id WHERE o.id=$1`,
+      [orderId],
     );
-    if (!b || b.customer_id !== customerId) throw new NotFoundException('Booking not found');
-    if (b.status !== 'accepted') throw new BadRequestException('This booking is not waiting for payment');
-    if (!b.escrow) throw new BadRequestException('This booking is paid directly to the fundi');
-    const msisdn = normalizeMwPhone(payPhone ?? b.customer_phone);
+    if (!o || o.buyer_id !== buyerId) throw new NotFoundException('Order not found');
+    if (o.status !== 'pending_payment') throw new BadRequestException('This order is not waiting for payment');
+    const msisdn = normalizeMwPhone(payPhone ?? o.buyer_phone);
     if (!msisdn) throw new BadRequestException('Enter an Airtel Money or TNM Mpamba number');
     const pending = await this.db.one(
-      `SELECT id FROM payments WHERE booking_id=$1 AND direction='collect' AND status='pending' AND created_at > now() - interval '3 minutes'`,
-      [bookingId],
+      `SELECT id FROM payments WHERE order_id=$1 AND direction='collect' AND status='pending' AND created_at > now() - interval '3 minutes'`,
+      [orderId],
     );
     if (pending) throw new BadRequestException('A payment request is already on your phone. Approve it with your PIN, or wait 3 minutes.');
 
-    const attempt = await this.db.one<{ n: number }>(`SELECT count(*) AS n FROM payments WHERE booking_id=$1 AND direction='collect'`, [bookingId]);
-    const total = b.price_mwk + b.protection_fee_mwk;
+    const attempt = await this.db.one<{ n: number }>(`SELECT count(*) AS n FROM payments WHERE order_id=$1 AND direction='collect'`, [orderId]);
     const payment = await this.db.one<PaymentRow>(
-      `INSERT INTO payments (booking_id, direction, operator, msisdn, amount_mwk, charge_id, next_check_at)
+      `INSERT INTO payments (order_id, direction, operator, msisdn, amount_mwk, charge_id, next_check_at)
        VALUES ($1,'collect',$2,$3,$4,$5, now() + interval '1 minute') RETURNING *`,
-      [bookingId, operatorFor(msisdn), msisdn, total, `${b.ref}-C${attempt!.n + 1}`],
+      [orderId, operatorFor(msisdn), msisdn, o.amount_mwk, `${o.ref}-C${attempt!.n + 1}`],
     );
-    const [first, ...rest] = String(b.customer_name ?? '').split(' ');
+    const [first, ...rest] = String(o.buyer_name ?? '').split(' ');
     const result = await this.driver.charge({
-      chargeId: payment!.charge_id, msisdn, operator: operatorFor(msisdn)!, amountMwk: total,
+      chargeId: payment!.charge_id, msisdn, operator: operatorFor(msisdn)!, amountMwk: Number(o.amount_mwk),
       firstName: first || null, lastName: rest.join(' ') || null,
     });
     await this.apply(payment!.id, result);
-    return this.get(payment!.id, customerId);
+    return this.get(payment!.id, buyerId);
   }
 
   async get(paymentId: string, userId?: string) {
     const p = await this.db.one(
-      `SELECT p.id, p.booking_id, p.direction, p.operator, p.amount_mwk, p.status, p.failure_reason, p.created_at, p.updated_at,
-              b.customer_id, b.provider_id, b.status AS booking_status
-         FROM payments p JOIN bookings b ON b.id = p.booking_id WHERE p.id=$1`,
+      `SELECT p.id, p.order_id, p.direction, p.operator, p.amount_mwk, p.status, p.failure_reason, p.created_at, p.updated_at,
+              o.buyer_id, o.seller_id, o.status AS order_status
+         FROM payments p JOIN orders o ON o.id = p.order_id WHERE p.id=$1`,
       [paymentId],
     );
-    if (!p || (userId && p.customer_id !== userId && p.provider_id !== userId)) throw new NotFoundException('Payment not found');
-    delete p.customer_id; delete p.provider_id;
+    if (!p || (userId && p.buyer_id !== userId && p.seller_id !== userId)) throw new NotFoundException('Payment not found');
+    delete p.buyer_id; delete p.seller_id;
     return p;
   }
 
   // ---------------------------------------------------------------- applying aggregator results
 
-  /** Record a driver result and run the side effects of success. Idempotent: a settled payment is never re-applied. */
+  /** Record a driver result and run its side effects. Idempotent: a settled payment is never applied twice. */
   async apply(paymentId: string, r: DriverResult) {
     if (r.status === 'pending') {
       await this.db.query(`UPDATE payments SET raw = COALESCE($2, raw), updated_at=now() WHERE id=$1 AND status='pending'`, [paymentId, r.raw ? JSON.stringify(r.raw) : null]);
@@ -90,7 +93,7 @@ export class PaymentsService {
     const afterCommit: (() => Promise<void>)[] = [];
     await this.db.tx(async (c) => {
       const p = await this.db.one<PaymentRow>(`SELECT * FROM payments WHERE id=$1 FOR UPDATE`, [paymentId], c);
-      if (!p || p.status !== 'pending') return; // already handled (webhook + poll race)
+      if (!p || p.status !== 'pending') return;
       await this.db.query(
         `UPDATE payments SET status=$2, provider_ref=COALESCE($3, provider_ref), failure_reason=$4, raw=COALESCE($5, raw),
                 next_check_at = CASE WHEN $2='failed' AND direction <> 'collect' AND attempts < $6
@@ -104,16 +107,16 @@ export class PaymentsService {
         if (r.status === 'success') await this.onCollectSuccess(c, p, afterCommit);
         else await this.onCollectFailed(c, p, r.failureReason);
       } else if (r.status === 'success') {
-        await this.ledger.post(c, p.booking_id, `${p.direction} ${p.charge_id}`, [
-          { account: p.direction === 'payout' ? 'provider_payable' : 'customer_refundable', amount: p.amount_mwk },
-          { account: 'cash', amount: -p.amount_mwk },
+        await this.ledger.post(c, p.order_id, `${p.direction} ${p.charge_id}`, [
+          { account: p.direction === 'payout' ? 'seller_payable' : 'buyer_refundable', amount: Number(p.amount_mwk) },
+          { account: 'cash', amount: -Number(p.amount_mwk) },
         ]);
-        const b = await this.db.one('SELECT ref, provider_id, customer_id FROM bookings WHERE id=$1', [p.booking_id], c);
+        const o = await this.db.one('SELECT id, ref, seller_id, buyer_id FROM orders WHERE id=$1', [p.order_id], c);
         await this.notifications.notify(
-          p.direction === 'payout' ? b.provider_id : b.customer_id,
-          p.direction, p.direction === 'payout' ? 'Ndalama zatumizidwa' : 'Refund sent',
-          `${formatMwk(p.amount_mwk)} has been sent to your ${p.operator === 'airtel' ? 'Airtel Money' : 'TNM Mpamba'} for booking ${b.ref}.`,
-          { bookingId: p.booking_id, sms: true }, c,
+          p.direction === 'payout' ? o.seller_id : o.buyer_id,
+          p.direction, p.direction === 'payout' ? 'Money sent' : 'Refund sent',
+          `${formatMwk(Number(p.amount_mwk))} has been sent to your ${p.operator === 'airtel' ? 'Airtel Money' : 'TNM Mpamba'} for order ${o.ref}.`,
+          { link: `/orders/${o.id}`, sms: true }, c,
         );
       } else {
         this.log.warn(`${p.direction} ${p.charge_id} failed (attempt ${p.attempts}): ${r.failureReason}`);
@@ -123,74 +126,87 @@ export class PaymentsService {
   }
 
   private async onCollectSuccess(c: Queryable, p: PaymentRow, afterCommit: (() => Promise<void>)[]) {
-    const b = await this.db.one(`SELECT * FROM bookings WHERE id=$1 FOR UPDATE`, [p.booking_id], c);
-    await this.ledger.post(c, b.id, `collect ${p.charge_id}`, [
-      { account: 'cash', amount: p.amount_mwk },
-      { account: 'escrow', amount: -b.price_mwk },
-      { account: 'fee_revenue', amount: -(p.amount_mwk - b.price_mwk) },
+    const o = await this.db.one(
+      `SELECT o.*, v.stock_no, mk.name || ' ' || md.name AS car FROM orders o JOIN vehicles v ON v.id=o.vehicle_id
+         JOIN makes mk ON mk.id=v.make_id JOIN models md ON md.id=v.model_id WHERE o.id=$1 FOR UPDATE OF o`,
+      [p.order_id], c,
+    );
+    await this.ledger.post(c, o.id, `collect ${p.charge_id}`, [
+      { account: 'cash', amount: Number(p.amount_mwk) },
+      { account: 'escrow', amount: -Number(p.amount_mwk) },
     ]);
-    if (b.status === 'accepted') {
-      await transition(this.db, c, b.id, 'accepted', 'paid', null, `Paid ${formatMwk(p.amount_mwk)}`, { expires_at: null });
-      await this.notifications.notify(b.customer_id, 'paid', 'Ndalama zanu zili bwino',
-        `${formatMwk(p.amount_mwk)} received for ${b.ref}. We hold it safely and pay the fundi only after you confirm the job is done.`,
-        { bookingId: b.id, sms: true }, c);
-      await this.notifications.notify(b.provider_id, 'paid', 'Customer has paid',
-        `Booking ${b.ref} is paid. ${formatMwk(b.price_mwk)} is held for you until the job is confirmed.`,
-        { bookingId: b.id, sms: true }, c);
-    } else {
-      // Money arrived after the booking was cancelled/expired: give it all back.
-      this.log.warn(`Late payment for ${b.ref} in status ${b.status}; refunding`);
-      const ids = await this.settleInTx(c, b, 0, true);
+    if (o.status !== 'pending_payment') {
+      // Money arrived after the order was cancelled or expired: give it all back.
+      this.log.warn(`Late payment for ${o.ref} in status ${o.status}; refunding`);
+      const ids = await this.settleInTx(c, o, 0, `late payment ${o.ref}`);
       afterCommit.push(() => this.dispatch(ids));
+      return;
+    }
+    const link = `/orders/${o.id}`;
+    if (o.kind === 'reservation') {
+      const until = addHours(new Date(), config.reservationHoldHours);
+      await transition(this.db, c, o.id, 'pending_payment', 'reserved', null, `Deposit ${formatMwk(Number(p.amount_mwk))} paid`, { expires_at: until });
+      await this.notifications.notify(o.buyer_id, 'reserved', 'Car reserved for you',
+        `${o.car} (${o.stock_no}) is reserved for you for ${config.reservationHoldHours} hours. Your deposit of ${formatMwk(Number(o.amount_mwk))} is held safely. Visit the seller to view and buy it.`,
+        { link, sms: true }, c);
+      await this.notifications.notify(o.seller_id, 'reserved', 'Your car has been reserved',
+        `${o.car} (${o.stock_no}) was reserved with a ${formatMwk(Number(o.amount_mwk))} deposit (order ${o.ref}). Contact the buyer to arrange viewing.`,
+        { link, sms: true }, c);
+    } else {
+      await transition(this.db, c, o.id, 'pending_payment', 'confirmed', null, `Paid ${formatMwk(Number(p.amount_mwk))}`, { expires_at: null });
+      await this.notifications.notify(o.buyer_id, 'confirmed', 'Rental confirmed',
+        `Your rental of ${o.car} from ${o.start_date} to ${o.end_date} is confirmed (order ${o.ref}).`, { link, sms: true }, c);
+      await this.notifications.notify(o.seller_id, 'confirmed', 'New rental booking',
+        `${o.car} (${o.stock_no}) is booked ${o.start_date} to ${o.end_date}${o.with_driver ? ' with driver' : ''}. Paid ${formatMwk(Number(o.amount_mwk))} (order ${o.ref}).`,
+        { link, sms: true }, c);
     }
   }
 
   private async onCollectFailed(c: Queryable, p: PaymentRow, reason?: string | null) {
-    const b = await this.db.one('SELECT ref, customer_id FROM bookings WHERE id=$1', [p.booking_id], c);
-    await this.notifications.notify(b.customer_id, 'payment_failed', 'Payment did not go through',
-      `Payment for ${b.ref} failed${reason ? ` (${reason.slice(0, 80)})` : ''}. Try again or use another wallet.`,
-      { bookingId: p.booking_id, sms: true }, c);
+    const o = await this.db.one('SELECT id, ref, buyer_id FROM orders WHERE id=$1', [p.order_id], c);
+    await this.notifications.notify(o.buyer_id, 'payment_failed', 'Payment did not go through',
+      `Payment for ${o.ref} failed${reason ? ` (${reason.slice(0, 80)})` : ''}. Try again or use another wallet.`,
+      { link: `/orders/${o.id}` }, c);
   }
 
-  // ---------------------------------------------------------------- settlement (release / refund / split)
+  // ---------------------------------------------------------------- settlement
 
   /**
-   * Settle an escrow booking. providerSharePercent of the job amount goes to the provider (less commission
-   * on that share); the rest is refunded to the customer, plus the protection fee when refundFee is true.
-   * Creates payout/refund payment rows in the caller's transaction; call dispatch(ids) after commit.
+   * Settle an order's escrow: sellerSharePercent of the paid amount goes to the seller (less the same share of
+   * the platform fee); the rest is refunded to the buyer. Creates payout/refund rows inside the caller's
+   * transaction; call dispatch(ids) after commit.
    */
-  async settleInTx(c: Queryable, b: any, providerSharePercent: number, refundFee: boolean): Promise<string[]> {
-    const price: number = b.price_mwk;
-    const providerGross = percentOf(price, providerSharePercent);
-    const commission = percentOf(b.commission_mwk, providerSharePercent);
-    const net = providerGross - commission;
-    const refundJob = price - providerGross;
-    const fee = refundFee ? b.protection_fee_mwk : 0;
-    await this.ledger.post(c, b.id, `settle ${b.ref} ${providerSharePercent}%`, [
-      { account: 'escrow', amount: price },
-      { account: 'provider_payable', amount: -net },
-      { account: 'fee_revenue', amount: -commission + fee },
-      { account: 'customer_refundable', amount: -(refundJob + fee) },
+  async settleInTx(c: Queryable, o: any, sellerSharePercent: number, memo: string): Promise<string[]> {
+    const amount = Number(o.amount_mwk);
+    const sellerGross = percentOf(amount, sellerSharePercent);
+    const fee = percentOf(Number(o.fee_mwk), sellerSharePercent);
+    const net = sellerGross - fee;
+    const refund = amount - sellerGross;
+    await this.ledger.post(c, o.id, memo, [
+      { account: 'escrow', amount },
+      { account: 'seller_payable', amount: -net },
+      { account: 'fee_revenue', amount: -fee },
+      { account: 'buyer_refundable', amount: -refund },
     ]);
     const ids: string[] = [];
     if (net > 0) {
-      const prov = await this.db.one('SELECT payout_msisdn, payout_operator FROM provider_profiles WHERE user_id=$1', [b.provider_id], c);
+      const s = await this.db.one('SELECT payout_msisdn, payout_operator FROM sellers WHERE user_id=$1', [o.seller_id], c);
       const row = await this.db.one(
-        `INSERT INTO payments (booking_id, direction, operator, msisdn, amount_mwk, charge_id) VALUES ($1,'payout',$2,$3,$4,$5) RETURNING id`,
-        [b.id, prov.payout_operator, prov.payout_msisdn, net, `${b.ref}-P1`],
+        `INSERT INTO payments (order_id, direction, operator, msisdn, amount_mwk, charge_id) VALUES ($1,'payout',$2,$3,$4,$5) RETURNING id`,
+        [o.id, s.payout_operator, s.payout_msisdn, net, `${o.ref}-P1`],
         c,
       );
       ids.push(row.id);
     }
-    if (refundJob + fee > 0) {
+    if (refund > 0) {
       const collect = await this.db.one(
-        `SELECT operator, msisdn FROM payments WHERE booking_id=$1 AND direction='collect' AND status='success' ORDER BY updated_at DESC LIMIT 1`,
-        [b.id],
+        `SELECT operator, msisdn FROM payments WHERE order_id=$1 AND direction='collect' AND status='success' ORDER BY updated_at DESC LIMIT 1`,
+        [o.id],
         c,
       );
       const row = await this.db.one(
-        `INSERT INTO payments (booking_id, direction, operator, msisdn, amount_mwk, charge_id) VALUES ($1,'refund',$2,$3,$4,$5) RETURNING id`,
-        [b.id, collect.operator, collect.msisdn, refundJob + fee, `${b.ref}-R1`],
+        `INSERT INTO payments (order_id, direction, operator, msisdn, amount_mwk, charge_id) VALUES ($1,'refund',$2,$3,$4,$5) RETURNING id`,
+        [o.id, collect.operator, collect.msisdn, refund, `${o.ref}-R1`],
         c,
       );
       ids.push(row.id);
@@ -203,7 +219,7 @@ export class PaymentsService {
     for (const id of ids) {
       const p = await this.db.one<PaymentRow>(`SELECT * FROM payments WHERE id=$1`, [id]);
       if (!p || p.status !== 'pending' || p.direction === 'collect') continue;
-      const r = await this.driver.payout({ chargeId: p.charge_id, msisdn: p.msisdn, operator: p.operator, amountMwk: p.amount_mwk });
+      const r = await this.driver.payout({ chargeId: p.charge_id, msisdn: p.msisdn, operator: p.operator, amountMwk: Number(p.amount_mwk) });
       await this.apply(p.id, r);
     }
   }
@@ -227,7 +243,6 @@ export class PaymentsService {
 
   /** Run by the scheduler every minute. */
   async reconcile() {
-    // 1. Pending collections: poll; give up after COLLECT_TIMEOUT_MIN.
     const collects = await this.db.query<PaymentRow & { age_min: number }>(
       `SELECT *, extract(epoch FROM now() - created_at) / 60 AS age_min FROM payments
         WHERE direction='collect' AND status='pending' AND (next_check_at IS NULL OR next_check_at <= now()) LIMIT 50`,
@@ -241,7 +256,6 @@ export class PaymentsService {
         await this.db.query(`UPDATE payments SET next_check_at = now() + interval '2 minutes' WHERE id=$1 AND status='pending'`, [p.id]);
       }
     }
-    // 2. Failed payouts/refunds due for retry: reopen with a fresh charge id (aggregator needs a unique id per attempt).
     const retries = await this.db.query<PaymentRow>(
       `SELECT * FROM payments WHERE direction <> 'collect' AND status='failed' AND next_check_at <= now() AND attempts < $1 LIMIT 20`,
       [MAX_PAYOUT_ATTEMPTS],

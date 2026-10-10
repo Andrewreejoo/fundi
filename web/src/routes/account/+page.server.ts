@@ -24,8 +24,12 @@ export const actions: Actions = {
     if (next) redirect(303, next);
     return { saved: 'pin' };
   },
+  read: async ({ locals }) => {
+    await locals.api.post('/me/notifications/read').catch(() => undefined);
+    return { saved: 'read' };
+  },
   logout: async ({ locals, cookies }) => {
-    const rt = cookies.get('fundi_rt');
+    const rt = cookies.get('gm_rt');
     if (rt) await locals.api.post('/auth/logout', { refreshToken: rt }).catch(() => undefined);
     clearTokens(cookies);
     redirect(303, '/');

@@ -1,5 +1,6 @@
 # Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo -> Apply.
 # Creates one free web service (API + website in one container) and one free PostgreSQL database.
+# The service keeps its original name "fundi" so the existing Render service and URL carry on; the site is Galimoto.
 services:
   - type: web
     name: fundi
@@ -18,7 +19,7 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
-      # Public demo: sign-in codes shown on screen, simulated payments, demo fundis.
+      # Public demo: sign-in codes shown on screen, simulated payments, demo dealers and cars.
       # For real users: set DEMO_MODE=false and add the SMS and PayChangu keys below.
       - key: DEMO_MODE
         value: "true"

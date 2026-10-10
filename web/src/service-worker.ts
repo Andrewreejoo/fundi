@@ -6,7 +6,7 @@
 import { build, files, version } from '$service-worker';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
-const CACHE = `fundi-${version}`;
+const CACHE = `galimoto-${version}`;
 const ASSETS = [...build, ...files];
 
 sw.addEventListener('install', (event) => {

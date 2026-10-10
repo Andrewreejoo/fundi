@@ -1,72 +1,71 @@
 <script lang="ts">
-  import { dateTime, mwk } from '$lib/format';
+  import { mwk } from '$lib/format';
   let { data } = $props();
-  const o = $derived(data.overview);
-  const tiles = $derived([
-    ['Completed jobs', o.completed_jobs, `last ${data.days} days`],
-    ['GMV', mwk(o.gmv_mwk), 'confirmed jobs'],
-    ['Held in escrow now', mwk(o.escrow_held_mwk), o.oldest_escrow_at ? `oldest since ${dateTime(o.oldest_escrow_at)}` : 'nothing held'],
-    ['Fee revenue (all time)', mwk(o.fee_revenue_mwk), 'protection fees + commission'],
-    ['Payment success', o.payment_success_pct == null ? 'n/a' : `${o.payment_success_pct}%`, `last ${data.days} days`],
-    ['New bookings', o.new_bookings, `${o.new_users} new users`],
+  const o = $derived(data.o);
+  const todo = $derived([
+    { n: o.pending_listings, label: 'listings to check', href: '/admin/listings' },
+    { n: o.unverified_dealers, label: 'dealers to verify', href: '/admin/sellers' },
+    { n: o.open_disputes, label: 'open problems', href: '/admin/orders' },
+    { n: o.failed_payouts, label: 'failed payouts or refunds', href: '/admin/payments?status=failed' },
   ]);
-  const queues = $derived([
-    ['/admin/verifications', 'IDs to verify', o.pending_verifications, 'SLA 24 h'],
-    ['/admin/listings', 'Listings to review', o.pending_listings, ''],
-    ['/admin/disputes', 'Open disputes', o.open_disputes, 'SLA 72 h'],
-    ['/admin/payments?status=failed', 'Failed payouts', o.failed_payouts, 'retry or check number'],
-  ]);
+  const maxMake = $derived(Math.max(1, ...o.byMake.map((m: any) => Number(m.sale) + Number(m.rent))));
 </script>
 
-<svelte:head><title>Admin · Fundi</title></svelte:head>
+<svelte:head><title>Admin · Galimoto</title></svelte:head>
 
 <div class="row between">
-  <h1 class="page-title">Overview</h1>
-  <nav class="row" style="--gap:6px" aria-label="Period">
-    {#each [1, 7, 30, 90] as d}<a class="btn small {d === data.days ? '' : 'ghost'}" href={`/admin?days=${d}`}>{d === 1 ? 'Today' : `${d} days`}</a>{/each}
+  <h1>Overview</h1>
+  <nav class="filters" aria-label="Period">
+    {#each [7, 30, 90] as d}<a href={`/admin?days=${d}`} aria-current={o.days === d ? 'page' : undefined}>Last {d} days</a>{/each}
   </nav>
 </div>
 
-<div class="tiles">
-  {#each tiles as [label, value, sub]}
-    <div class="card tile"><span class="muted small">{label}</span><strong>{value}</strong><span class="muted tiny">{sub}</span></div>
+<section class="todo">
+  {#each todo as t}
+    <a href={t.href} class="panel" class:hot={Number(t.n) > 0}><b>{t.n}</b> {t.label}</a>
   {/each}
-</div>
+</section>
 
-<div class="tiles">
-  {#each queues as [href, label, n, sub]}
-    <a class="card tile queue" class:hot={Number(n) > 0} {href}><span class="small">{label}</span><strong>{n}</strong><span class="muted tiny">{sub}</span></a>
-  {/each}
-</div>
+<section class="kpis">
+  <div class="panel"><b>{o.live_for_sale}</b><span>Cars for sale</span></div>
+  <div class="panel"><b>{o.live_for_rent}</b><span>Cars for hire</span></div>
+  <div class="panel"><b>{o.sellers}</b><span>Sellers</span></div>
+  <div class="panel"><b>{o.new_listings}</b><span>New listings</span></div>
+  <div class="panel"><b>{o.inquiries}</b><span>Enquiries</span></div>
+  <div class="panel"><b>{o.reservations}</b><span>Paid reservations</span></div>
+  <div class="panel"><b>{o.rentals}</b><span>Paid rentals</span></div>
+  <div class="panel"><b>{o.sold}</b><span>Marked sold</span></div>
+  <div class="panel"><b>{o.new_users}</b><span>New users</span></div>
+  <div class="panel"><b>{o.payment_success_pct ?? '–'}%</b><span>Payments approved</span></div>
+  <div class="panel"><b>{mwk(o.escrow_held_mwk)}</b><span>Held in escrow now</span></div>
+  <div class="panel"><b>{mwk(o.fee_revenue_mwk)}</b><span>Fee revenue, all time</span></div>
+</section>
 
-<div class="cols">
-  <section class="card stack">
-    <h2>Providers by district</h2>
-    <div class="scroll-x">
-      <table class="data">
-        <thead><tr><th>District</th><th>Providers</th><th>Completed jobs</th></tr></thead>
-        <tbody>{#each o.byDistrict as r}<tr><td>{r.district}</td><td>{r.providers}</td><td>{r.completed_jobs}</td></tr>{/each}</tbody>
-      </table>
-    </div>
+<div class="grid2">
+  <section class="panel stack" style="--gap:8px">
+    <h2>Live stock by make</h2>
+    {#each o.byMake as m}
+      <div class="bar"><span>{m.name}</span><span class="track"><i style={`width:${(Number(m.sale) / maxMake) * 100}%`}></i><i class="rent" style={`width:${(Number(m.rent) / maxMake) * 100}%`}></i></span><span class="tiny muted">{m.sale} sale, {m.rent} hire</span></div>
+    {/each}
   </section>
-  <section class="card stack">
-    <h2>Ledger balances</h2>
-    <p class="muted small">Double-entry; the sum of all accounts must be zero.</p>
-    <table class="data">
-      <tbody>
-        {#each data.ledger as r}<tr><td>{r.account}</td><td style="text-align:right">{mwk(r.balance)}</td></tr>{/each}
-        <tr><td class="bold">Sum</td><td class="bold" style="text-align:right">{mwk(data.ledger.reduce((s: number, r: any) => s + Number(r.balance), 0))}</td></tr>
-      </tbody>
-    </table>
+  <section class="panel stack" style="--gap:8px">
+    <h2>Live stock by district</h2>
+    <div class="tablewrap"><table><tbody>{#each o.byDistrict as d}<tr><td>{d.district}</td><td>{d.listings}</td></tr>{/each}</tbody></table></div>
   </section>
 </div>
 
 <style>
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-  .tile { display: flex; flex-direction: column; gap: 4px; }
-  .tile strong { font-size: 26px; }
-  .queue { color: var(--ink); text-decoration: none; }
-  .queue.hot { border: 2px solid var(--orange); }
-  .cols { display: flex; flex-wrap: wrap; gap: 16px; }
-  .cols > * { flex: 1 1 320px; min-width: 0; }
+  .todo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .todo a { color: var(--ink); text-decoration: none; }
+  .todo a.hot { border-color: var(--plate); background: #fffbe8; }
+  .todo b { font-family: var(--font-cond); font-size: 28px; display: block; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .kpis div { display: flex; flex-direction: column; gap: 2px; }
+  .kpis b { font-family: var(--font-cond); font-size: 24px; }
+  .kpis span { font-size: 13px; color: var(--muted); }
+  .bar { display: grid; grid-template-columns: 110px 1fr 110px; gap: 8px; align-items: center; font-size: 14px; }
+  .track { display: flex; height: 12px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
+  .track i { background: var(--asphalt); }
+  .track i.rent { background: var(--plate); }
+  @media (max-width: 700px) { .todo, .kpis { grid-template-columns: 1fr 1fr; } }
 </style>

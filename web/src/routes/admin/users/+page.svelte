@@ -1,44 +1,33 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { dateTime, localPhone } from '$lib/format';
+  import { dateLabel, localPhone } from '$lib/format';
   let { data, form } = $props();
+  const sure = (e: SubmitEvent) => { if (!confirm('Suspend this user? They are signed out and their live cars are paused.')) e.preventDefault(); };
 </script>
 
-<svelte:head><title>Users · Fundi admin</title></svelte:head>
+<svelte:head><title>Users · Admin · Galimoto</title></svelte:head>
 
-<h1 class="page-title">Users</h1>
-<form method="GET" class="row" style="--gap:8px">
-  <input name="phone" type="search" placeholder="Search by phone" value={data.phone} style="max-width:280px" />
-  <button class="btn small">Search</button>
-</form>
-{#if form?.error}<p class="alert error">{form.error}</p>{/if}
-{#if form?.done}<p class="alert ok">{form.done}.</p>{/if}
-
-<div class="card scroll-x">
-  <table class="data">
-    <thead><tr><th>Phone</th><th>Name</th><th>Roles</th><th>Provider</th><th>Joined</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-      {#each data.items as u (u.id)}
-        <tr>
-          <td>{localPhone(u.phone)}</td>
-          <td>{u.name ?? ''}</td>
-          <td>{u.roles.join(', ')}</td>
-          <td>{u.display_name ? `${u.display_name} (${u.verification_level}, ${u.district})` : ''}</td>
-          <td>{dateTime(u.created_at)}</td>
-          <td><span class="pill {u.status === 'active' ? 'good' : 'bad'}">{u.status}</span></td>
-          <td class="row" style="--gap:6px">
-            <form method="POST" action="?/status" use:enhance>
-              <input type="hidden" name="id" value={u.id} /><input type="hidden" name="to" value={u.status === 'active' ? 'suspended' : 'active'} />
-              <button class="btn small {u.status === 'active' ? 'danger' : 'secondary'}">{u.status === 'active' ? 'Suspend' : 'Activate'}</button>
-            </form>
-            <form method="POST" action="?/role" use:enhance>
-              <input type="hidden" name="id" value={u.id} /><input type="hidden" name="role" value="agent" />
-              <input type="hidden" name="op" value={u.roles.includes('agent') ? 'remove' : 'add'} />
-              <button class="btn small ghost">{u.roles.includes('agent') ? 'Remove agent' : 'Make agent'}</button>
-            </form>
-          </td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+<div class="row between"><h1>Users</h1>
+  <form method="GET" class="row" style="--gap:6px"><input name="phone" value={data.phone} placeholder="Phone number" aria-label="Search by phone" /><button class="btn dark sm">Search</button></form>
 </div>
+{#if form?.error}<p class="alert error">{form.error}</p>{/if}
+<div class="tablewrap"><table>
+  <thead><tr><th>Phone</th><th>Name</th><th>Roles</th><th>Seller</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+  <tbody>
+    {#each data.list as u (u.id)}
+      <tr>
+        <td>{localPhone(u.phone)}</td><td>{u.name ?? ''}</td><td>{u.roles.join(', ')}</td>
+        <td>{u.seller_name ?? ''}{#if u.seller_name}<br /><span class="tiny muted">{u.seller_kind}{u.verified ? ', verified' : ''}</span>{/if}</td>
+        <td>{u.status}</td><td>{dateLabel(u.created_at)}</td>
+        <td>
+          {#if !u.roles.includes('admin')}
+            <form method="POST" action="?/status" use:enhance onsubmit={u.status === 'active' ? sure : undefined}>
+              <input type="hidden" name="id" value={u.id} /><input type="hidden" name="to" value={u.status === 'active' ? 'suspend' : 'activate'} />
+              <button class="btn sm {u.status === 'active' ? 'plain' : ''}">{u.status === 'active' ? 'Suspend' : 'Reactivate'}</button>
+            </form>
+          {/if}
+        </td>
+      </tr>
+    {/each}
+  </tbody>
+</table></div>

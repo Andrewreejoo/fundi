@@ -42,5 +42,6 @@ export const api = (app: INestApplication, token?: string) => {
     get: (u: string) => wrap(agent.get(u)),
     post: (u: string, body?: object) => wrap(agent.post(u)).send(body ?? {}),
     patch: (u: string, body?: object) => wrap(agent.patch(u)).send(body ?? {}),
+    put: (u: string, body?: object) => wrap(agent.put(u)).send(body ?? {}),
   };
 };

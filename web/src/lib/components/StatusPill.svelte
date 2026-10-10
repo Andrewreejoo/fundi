@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { t, type Lang, type Key } from '$lib/i18n';
-  let { status, lang }: { status: string; lang: Lang } = $props();
+  import { STATUS_LABEL } from '$lib/format';
+  let { status }: { status: string } = $props();
   const tone = $derived(
-    ['confirmed', 'paid'].includes(status) ? 'good'
+    ['completed', 'confirmed', 'reserved'].includes(status) ? 'good'
     : ['disputed', 'cancelled', 'expired'].includes(status) ? 'bad'
-    : ['requested', 'quoted', 'accepted', 'completed'].includes(status) ? 'warn'
-    : 'neutral',
+    : ['pending_payment', 'handed_over', 'returned'].includes(status) ? 'held'
+    : 'quiet',
   );
 </script>
 
-<span class="pill {tone}">{t(lang, `st_${status}` as Key)}</span>
+<span class="tag {tone}">{STATUS_LABEL[status] ?? status}</span>

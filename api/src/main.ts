@@ -31,7 +31,7 @@ async function bootstrap() {
     Logger.warn('PAYMENTS_DRIVER=paychangu but PAYCHANGU_SECRET_KEY is empty: payments will fail until you add your test keys', 'Bootstrap');
   }
   await app.listen(config.port, '0.0.0.0');
-  Logger.log(`Fundi API on :${config.port} (payments=${config.paymentsDriver}, sms=${config.smsDriver})`, 'Bootstrap');
+  Logger.log(`Galimoto API on :${config.port} (payments=${config.paymentsDriver}, sms=${config.smsDriver})`, 'Bootstrap');
 }
 
 if (require.main === module) bootstrap();

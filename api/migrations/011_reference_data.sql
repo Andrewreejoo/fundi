@@ -1,0 +1,68 @@
+-- Places (approximate centres; used for location search and seller addresses).
+INSERT INTO places (district, name, kind, geog) VALUES
+  ('Lilongwe','City Centre','area',  ST_GeogFromText('POINT(33.787 -13.958)')),
+  ('Lilongwe','Old Town (Area 2)','area', ST_GeogFromText('POINT(33.783 -13.985)')),
+  ('Lilongwe','Area 18','area',      ST_GeogFromText('POINT(33.752 -13.958)')),
+  ('Lilongwe','Area 25','area',      ST_GeogFromText('POINT(33.790 -13.905)')),
+  ('Lilongwe','Area 47','area',      ST_GeogFromText('POINT(33.742 -13.948)')),
+  ('Lilongwe','Area 49','area',      ST_GeogFromText('POINT(33.752 -13.938)')),
+  ('Lilongwe','Kanengo','area',      ST_GeogFromText('POINT(33.790 -13.870)')),
+  ('Blantyre','City Centre','area',  ST_GeogFromText('POINT(35.005 -15.786)')),
+  ('Blantyre','Limbe','area',        ST_GeogFromText('POINT(35.051 -15.813)')),
+  ('Blantyre','Ndirande','area',     ST_GeogFromText('POINT(35.040 -15.780)')),
+  ('Blantyre','Chilomoni','area',    ST_GeogFromText('POINT(34.980 -15.790)')),
+  ('Blantyre','Chirimba','area',     ST_GeogFromText('POINT(35.010 -15.755)')),
+  ('Mzuzu','City Centre','area',     ST_GeogFromText('POINT(34.021 -11.466)')),
+  ('Mzuzu','Katoto','area',          ST_GeogFromText('POINT(34.010 -11.450)')),
+  ('Zomba','Zomba town','town',      ST_GeogFromText('POINT(35.318 -15.386)')),
+  ('Kasungu','Kasungu boma','town',  ST_GeogFromText('POINT(33.483 -13.033)')),
+  ('Mangochi','Mangochi boma','town',ST_GeogFromText('POINT(35.264 -14.478)')),
+  ('Salima','Salima boma','town',    ST_GeogFromText('POINT(34.459 -13.780)')),
+  ('Karonga','Karonga boma','town',  ST_GeogFromText('POINT(33.933 -9.933)')),
+  ('Dedza','Dedza boma','town',      ST_GeogFromText('POINT(34.333 -14.378)')),
+  ('Ntcheu','Ntcheu boma','town',    ST_GeogFromText('POINT(34.636 -14.817)')),
+  ('Mchinji','Mchinji boma','town',  ST_GeogFromText('POINT(32.880 -13.798)')),
+  ('Machinga','Liwonde','town',      ST_GeogFromText('POINT(35.233 -15.067)'));
+
+-- Makes and models common on Malawi roads (mostly Japanese used imports). Extend from the admin later.
+INSERT INTO makes (slug, name, sort) VALUES
+  ('toyota','Toyota',1),('nissan','Nissan',2),('honda','Honda',3),('mazda','Mazda',4),('mitsubishi','Mitsubishi',5),
+  ('subaru','Subaru',6),('suzuki','Suzuki',7),('isuzu','Isuzu',8),('volkswagen','Volkswagen',9),('mercedes-benz','Mercedes-Benz',10),
+  ('bmw','BMW',11),('ford','Ford',12),('hyundai','Hyundai',13),('kia','Kia',14),('land-rover','Land Rover',15),('lexus','Lexus',16);
+
+INSERT INTO models (make_id, slug, name, body_type)
+SELECT m.id, v.slug, v.name, v.body FROM (VALUES
+  ('toyota','vitz','Vitz','hatchback'),('toyota','passo','Passo','hatchback'),('toyota','ist','IST','hatchback'),
+  ('toyota','ractis','Ractis','hatchback'),('toyota','belta','Belta','sedan'),('toyota','corolla','Corolla','sedan'),
+  ('toyota','axio','Corolla Axio','sedan'),('toyota','fielder','Corolla Fielder','wagon'),('toyota','allion','Allion','sedan'),
+  ('toyota','premio','Premio','sedan'),('toyota','mark-x','Mark X','sedan'),('toyota','camry','Camry','sedan'),
+  ('toyota','wish','Wish','minibus'),('toyota','sienta','Sienta','minibus'),('toyota','noah','Noah','minibus'),
+  ('toyota','voxy','Voxy','minibus'),('toyota','alphard','Alphard','minibus'),('toyota','hiace','Hiace','van'),
+  ('toyota','probox','Probox','wagon'),('toyota','rav4','RAV4','suv'),('toyota','harrier','Harrier','suv'),
+  ('toyota','fortuner','Fortuner','suv'),('toyota','prado','Land Cruiser Prado','suv'),('toyota','land-cruiser','Land Cruiser','suv'),
+  ('toyota','hilux','Hilux','pickup'),('toyota','dyna','Dyna','truck'),('toyota','coaster','Coaster','bus'),
+  ('nissan','march','March','hatchback'),('nissan','note','Note','hatchback'),('nissan','tiida','Tiida','hatchback'),
+  ('nissan','sylphy','Sylphy','sedan'),('nissan','x-trail','X-Trail','suv'),('nissan','dualis','Dualis','suv'),
+  ('nissan','juke','Juke','suv'),('nissan','patrol','Patrol','suv'),('nissan','navara','Navara','pickup'),
+  ('nissan','caravan','NV350 Caravan','van'),('nissan','serena','Serena','minibus'),('nissan','ad-van','AD Van','wagon'),
+  ('honda','fit','Fit','hatchback'),('honda','vezel','Vezel','suv'),('honda','cr-v','CR-V','suv'),('honda','freed','Freed','minibus'),
+  ('honda','stream','Stream','minibus'),('honda','civic','Civic','sedan'),
+  ('mazda','demio','Demio','hatchback'),('mazda','axela','Axela','hatchback'),('mazda','atenza','Atenza','sedan'),
+  ('mazda','cx-5','CX-5','suv'),('mazda','bt-50','BT-50','pickup'),
+  ('mitsubishi','pajero','Pajero','suv'),('mitsubishi','outlander','Outlander','suv'),('mitsubishi','rvr','RVR','suv'),
+  ('mitsubishi','triton','L200 Triton','pickup'),('mitsubishi','delica','Delica','minibus'),('mitsubishi','canter','Canter','truck'),
+  ('subaru','forester','Forester','suv'),('subaru','impreza','Impreza','hatchback'),('subaru','legacy','Legacy','wagon'),
+  ('subaru','outback','Outback','wagon'),('subaru','xv','XV','suv'),
+  ('suzuki','swift','Swift','hatchback'),('suzuki','escudo','Escudo','suv'),('suzuki','jimny','Jimny','suv'),('suzuki','every','Every','van'),
+  ('isuzu','d-max','D-Max','pickup'),('isuzu','elf','Elf','truck'),('isuzu','mu-x','MU-X','suv'),
+  ('volkswagen','polo','Polo','hatchback'),('volkswagen','golf','Golf','hatchback'),('volkswagen','amarok','Amarok','pickup'),
+  ('volkswagen','touareg','Touareg','suv'),
+  ('mercedes-benz','c-class','C-Class','sedan'),('mercedes-benz','e-class','E-Class','sedan'),('mercedes-benz','ml','ML / GLE','suv'),
+  ('mercedes-benz','sprinter','Sprinter','van'),
+  ('bmw','3-series','3 Series','sedan'),('bmw','5-series','5 Series','sedan'),('bmw','x3','X3','suv'),('bmw','x5','X5','suv'),
+  ('ford','ranger','Ranger','pickup'),('ford','everest','Everest','suv'),('ford','fiesta','Fiesta','hatchback'),
+  ('hyundai','tucson','Tucson','suv'),('hyundai','santa-fe','Santa Fe','suv'),('hyundai','h1','H-1','van'),
+  ('kia','sportage','Sportage','suv'),('kia','sorento','Sorento','suv'),('kia','picanto','Picanto','hatchback'),
+  ('land-rover','discovery','Discovery','suv'),('land-rover','range-rover','Range Rover','suv'),('land-rover','defender','Defender','suv'),
+  ('lexus','rx','RX','suv'),('lexus','lx','LX','suv')
+) AS v(make, slug, name, body) JOIN makes m ON m.slug = v.make;

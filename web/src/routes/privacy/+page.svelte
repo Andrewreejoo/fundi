@@ -1,8 +1,9 @@
-<svelte:head><title>Privacy · Fundi</title></svelte:head>
-<div class="narrow section stack">
-  <h1 class="page-title">Privacy</h1>
+<svelte:head><title>Privacy · Galimoto</title></svelte:head>
+<div class="narrow page stack">
+  <h1>Privacy</h1>
   <p class="alert info">[Placeholder. Replace with the privacy notice approved by your lawyer and Data Protection Officer under Malawi's Data Protection Act 2024 before launch.]</p>
-  <p>What we collect: your phone number, name, area, bookings and payments. Fundis also give a payout number and, for verification, a photo of their national ID and a selfie.</p>
-  <p>How we use it: to match you with fundis, process payments, prevent fraud and resolve problems. Your phone number is shown only to the other side of a booking once it is accepted.</p>
-  <p>ID photos are kept private, seen only by our verification team, and deleted 90 days after the check. We keep the decision, not the image.</p>
+  <p><strong>What we collect.</strong> Your phone number and name, the cars you list, save, enquire about, reserve or hire, your messages with sellers, and payment records. Sellers also give a location and a mobile money number for payouts.</p>
+  <p><strong>Who sees it.</strong> A seller's phone number is shown to signed-in visitors on their listings. A buyer's number is shown to the seller only after a reservation or rental is paid. Number plates are shown only if the seller enters them.</p>
+  <p><strong>Why.</strong> To run the marketplace, process payments, prevent fraud and resolve problems. We don't sell your data.</p>
+  <p><strong>Cookies.</strong> We use cookies to keep you signed in and to remember your compare list and recently viewed cars. No advertising trackers.</p>
 </div>

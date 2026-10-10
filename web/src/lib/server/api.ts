@@ -9,8 +9,8 @@ export class ApiError extends Error {
   }
 }
 
-const ACCESS = 'fundi_at';
-const REFRESH = 'fundi_rt';
+const ACCESS = 'gm_at';
+const REFRESH = 'gm_rt';
 const cookieOpts = (secure: boolean) => ({ path: '/', httpOnly: true, sameSite: 'lax' as const, secure });
 
 export function storeTokens(cookies: Cookies, tokens: { accessToken: string; refreshToken: string }, secure: boolean) {
@@ -76,6 +76,8 @@ export function apiFor(cookies: Cookies, fetchFn: typeof fetch, secure = false) 
     get: (p: string) => raw('GET', p),
     post: (p: string, b: unknown = {}) => raw('POST', p, b),
     patch: (p: string, b: unknown = {}) => raw('PATCH', p, b),
+    put: (p: string, b: unknown = {}) => raw('PUT', p, b),
+    del: (p: string) => raw('DELETE', p),
     upload: (p: string, form: FormData) => raw('POST', p, form, true),
     /** Stream a file (e.g. a private ID photo) through the site with the visitor's token. */
     file: async (id: string) => {

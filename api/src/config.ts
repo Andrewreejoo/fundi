@@ -44,7 +44,7 @@ export const config = {
   get refreshTokenDays() { return num('REFRESH_TOKEN_DAYS', 30); },
   get adminPhones() { return str('ADMIN_PHONES', '').split(',').map((s) => s.trim()).filter(Boolean); },
   get devOtpEcho() { return bool('DEV_OTP_ECHO', false) || this.demoMode; },
-  /** Public demo deployment: SMS codes shown on screen, simulated payments, demo fundis. Never for real users. */
+  /** Public demo deployment: SMS codes shown on screen, simulated payments, demo cars. Never for real users. */
   get demoMode() { return bool('DEMO_MODE', false); },
 
   get smsDriver() { return str('SMS_DRIVER', 'log') as 'log' | 'africastalking'; },
@@ -57,18 +57,22 @@ export const config = {
   get paychanguSecretKey() { return str('PAYCHANGU_SECRET_KEY', ''); },
   get paychanguWebhookSecret() { return str('PAYCHANGU_WEBHOOK_SECRET', ''); },
   get paychanguBaseUrl() { return str('PAYCHANGU_BASE_URL', 'https://api.paychangu.com').replace(/\/$/, ''); },
-  get commissionPercent() { return num('COMMISSION_PERCENT', 8); },
-  get protectionFeePercent() { return num('PROTECTION_FEE_PERCENT', 2); },
-  get protectionFeeMin() { return num('PROTECTION_FEE_MIN_MWK', 200); },
-  get escrowDefaultMin() { return num('ESCROW_DEFAULT_MIN_MWK', 20000); },
+  /** Platform fee on a completed sale, as % of the car price, taken from the deposit paid out to the seller. */
+  get saleFeePercent() { return num('SALE_FEE_PERCENT', 1); },
+  /** Platform commission on rentals, as % of the rental total, taken from the owner's payout. */
+  get rentalCommissionPercent() { return num('RENTAL_COMMISSION_PERCENT', 10); },
+  /** Refundable reservation deposit: % of price, clamped to [min, max] and never more than the price. */
+  get depositPercent() { return num('DEPOSIT_PERCENT', 5); },
+  get depositMin() { return num('DEPOSIT_MIN_MWK', 50_000); },
+  get depositMax() { return num('DEPOSIT_MAX_MWK', 500_000); },
 
-  get instantReplyHours() { return num('INSTANT_REPLY_HOURS', 2); },
-  get quoteReplyHours() { return num('QUOTE_REPLY_HOURS', 24); },
   get payWindowMinutes() { return num('PAY_WINDOW_MINUTES', 30); },
-  get autoConfirmHours() { return num('AUTO_CONFIRM_HOURS', 48); },
-  get idImageRetentionDays() { return num('ID_IMAGE_RETENTION_DAYS', 90); },
+  /** How long a paid reservation holds the car for the buyer to view and complete the purchase. */
+  get reservationHoldHours() { return num('RESERVATION_HOLD_HOURS', 72); },
+  /** After the seller marks handed over / returned, the buyer has this long to report a problem. */
+  get autoCompleteHours() { return num('AUTO_COMPLETE_HOURS', 48); },
   get disputeSlaHours() { return num('DISPUTE_SLA_HOURS', 72); },
 
   get uploadDir() { return path.resolve(str('UPLOAD_DIR', './uploads')); },
-  get maxUploadMb() { return num('MAX_UPLOAD_MB', 3); },
+  get maxUploadMb() { return num('MAX_UPLOAD_MB', 8); },
 };

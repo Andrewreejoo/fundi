@@ -26,6 +26,7 @@ services:
       PUBLIC_API_URL: http://localhost:3000
       # Local defaults; override in api/.env. Never use these in production.
       NODE_ENV: ${NODE_ENV:-development}
+      DEMO_MODE: ${DEMO_MODE:-true}   # demo cars, simulated payments, codes on screen
       DEV_OTP_ECHO: ${DEV_OTP_ECHO:-true}
       PAYMENTS_DRIVER: ${PAYMENTS_DRIVER:-fake}
       ADMIN_PHONES: ${ADMIN_PHONES:-0999000001}

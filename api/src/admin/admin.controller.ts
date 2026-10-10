@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { AuthUser, CurrentUser, Roles } from '../common/auth';
 import { PaymentsService } from '../payments/payments.service';
-import { RejectDto, ResolveDisputeDto, RolesDto } from './admin.dto';
+import { RejectDto, ResolveDisputeDto, ToggleDto } from './admin.dto';
 import { AdminService } from './admin.service';
 
 @Roles('admin')
@@ -14,39 +14,44 @@ export class AdminController {
     return this.admin.overview(Math.min(Math.max(Number(days) || 7, 1), 365));
   }
 
-  @Get('verifications')
-  verifications(@Query('status') status?: string) {
-    return this.admin.verifications(status ?? 'pending');
-  }
-  @Post('verifications/:id/approve') @HttpCode(200)
-  approveVerification(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.admin.reviewVerification(id, u.id, true);
-  }
-  @Post('verifications/:id/reject') @HttpCode(200)
-  rejectVerification(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectDto) {
-    return this.admin.reviewVerification(id, u.id, false, dto.reason);
-  }
-
   @Get('listings')
   listings(@Query('status') status?: string) {
-    return this.admin.listings(status ?? 'pending');
+    return this.admin.listings(status || 'pending');
   }
   @Post('listings/:id/approve') @HttpCode(200)
-  approveListing(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+  approve(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.admin.reviewListing(id, u.id, true);
   }
   @Post('listings/:id/reject') @HttpCode(200)
-  rejectListing(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectDto) {
+  reject(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectDto) {
     return this.admin.reviewListing(id, u.id, false, dto.reason);
+  }
+  @Post('listings/:id/feature') @HttpCode(200)
+  feature(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ToggleDto) {
+    return this.admin.feature(id, u.id, dto.on);
+  }
+
+  @Get('sellers')
+  sellers(@Query('q') q?: string) {
+    return this.admin.sellers(q);
+  }
+  @Post('sellers/:id/verify') @HttpCode(200)
+  verify(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ToggleDto) {
+    return this.admin.verifySeller(id, u.id, dto.on);
+  }
+
+  @Get('orders')
+  orders(@Query('status') status?: string) {
+    return this.admin.orders(status);
   }
 
   @Get('disputes')
   disputes(@Query('status') status?: string) {
-    return this.admin.disputes(status ?? 'open');
+    return this.admin.disputes(status === 'resolved' ? 'resolved' : 'open');
   }
   @Post('disputes/:id/resolve') @HttpCode(200)
   resolve(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ResolveDisputeDto) {
-    return this.admin.resolveDispute(id, u.id, dto.resolution, dto.providerSharePercent, dto.note);
+    return this.admin.resolveDispute(id, u.id, dto.resolution, dto.sellerSharePercent, dto.note);
   }
 
   @Get('users')
@@ -60,15 +65,6 @@ export class AdminController {
   @Post('users/:id/activate') @HttpCode(200)
   activate(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.admin.setUserStatus(id, u.id, 'active');
-  }
-  @Post('users/:id/roles') @HttpCode(200)
-  roles(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RolesDto) {
-    return this.admin.setRole(id, u.id, dto.role, dto.op);
-  }
-
-  @Get('bookings')
-  bookings(@Query('status') status?: string) {
-    return this.admin.bookings(status);
   }
 
   @Get('payments')

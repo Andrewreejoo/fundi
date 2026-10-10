@@ -17,21 +17,21 @@ export class NotificationsService {
     kind: string,
     title: string,
     body: string,
-    opts: { bookingId?: string; sms?: boolean } = {},
+    opts: { link?: string; sms?: boolean } = {},
     client?: Queryable,
   ) {
     await this.db.query(
-      `INSERT INTO notifications (user_id, kind, title, body, booking_id) VALUES ($1,$2,$3,$4,$5)`,
-      [userId, kind, title, body, opts.bookingId ?? null],
+      `INSERT INTO notifications (user_id, kind, title, body, link) VALUES ($1,$2,$3,$4,$5)`,
+      [userId, kind, title, body, opts.link ?? null],
       client,
     );
     if (opts.sms) {
       const user = await this.db.one<{ phone: string }>('SELECT phone FROM users WHERE id = $1', [userId], client);
-      if (user) await this.sms(user.phone, `Fundi: ${body}`, client);
+      if (user) await this.sms(user.phone, `Galimoto: ${body}`, client);
     }
   }
 
-  /** Queue and send an SMS. Never throws: SMS failure must not break a booking or payment. */
+  /** Queue and send an SMS. Never throws: SMS failure must not break an order or payment. */
   async sms(toPhone: string, body: string, client?: Queryable) {
     const text = body.length > 459 ? body.slice(0, 456) + '...' : body; // max 3 SMS segments
     const row = await this.db.one<{ id: number }>(
@@ -67,7 +67,7 @@ export class NotificationsService {
 
   list(userId: string) {
     return this.db.query(
-      `SELECT id, kind, title, body, booking_id, read_at, created_at FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50`,
+      `SELECT id, kind, title, body, link, read_at, created_at FROM notifications WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50`,
       [userId],
     );
   }

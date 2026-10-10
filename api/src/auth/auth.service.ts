@@ -39,7 +39,7 @@ export class AuthService {
       `INSERT INTO otp_codes (phone, code_hash, expires_at) VALUES ($1,$2, now() + ($3 || ' minutes')::interval)`,
       [phone, sha256(`${phone}:${code}`), String(OTP_TTL_MIN)],
     );
-    await this.notifications.sms(phone, `Fundi code: ${code}. Musauze aliyense. Do not share it with anyone.`);
+    await this.notifications.sms(phone, `Galimoto code: ${code}. Do not share it with anyone.`);
     return { ok: true, phone, expiresInMinutes: OTP_TTL_MIN, ...(config.devOtpEcho ? { devCode: code } : {}) };
   }
 
@@ -72,7 +72,7 @@ export class AuthService {
     } else if (isAdmin && !user.roles.includes('admin')) {
       await this.db.query(`UPDATE users SET roles = array_append(roles, 'admin') WHERE id=$1`, [user.id]);
     }
-    if (user!.status !== 'active') throw new UnauthorizedException('This account is suspended. Call Fundi support.');
+    if (user!.status !== 'active') throw new UnauthorizedException('This account is suspended. Contact Galimoto support.');
     return { ...(await this.issueTokens(user!.id)), isNew, hasPin: !!user!.pin_hash };
   }
 
@@ -86,7 +86,7 @@ export class AuthService {
     if (!user?.pin_hash || !(await argon2.verify(user.pin_hash, pin))) {
       throw new UnauthorizedException('Wrong number or PIN');
     }
-    if (user.status !== 'active') throw new UnauthorizedException('This account is suspended. Call Fundi support.');
+    if (user.status !== 'active') throw new UnauthorizedException('This account is suspended. Contact Galimoto support.');
     return this.issueTokens(user.id);
   }
 
@@ -116,19 +116,22 @@ export class AuthService {
 
   async me(userId: string) {
     const user = await this.db.one(
-      `SELECT u.id, u.phone, u.name, u.roles, u.language, (u.pin_hash IS NOT NULL) AS has_pin,
-              p.user_id IS NOT NULL AS is_provider, p.verification_level, p.status AS provider_status
-         FROM users u LEFT JOIN provider_profiles p ON p.user_id = u.id
+      `SELECT u.id, u.phone, u.name, u.roles, (u.pin_hash IS NOT NULL) AS has_pin,
+              s.user_id IS NOT NULL AS is_seller, s.kind AS seller_kind, s.name AS seller_name, s.verified AS seller_verified,
+              (SELECT count(*) FROM inquiry_messages m JOIN inquiries i ON i.id=m.inquiry_id
+                WHERE (i.buyer_id=u.id OR i.seller_id=u.id) AND m.sender_id <> u.id AND m.read_at IS NULL) AS unread_messages,
+              (SELECT count(*) FROM favorites f WHERE f.user_id=u.id) AS favorites_count
+         FROM users u LEFT JOIN sellers s ON s.user_id = u.id
         WHERE u.id=$1`,
       [userId],
     );
     return user;
   }
 
-  async updateMe(userId: string, dto: { name?: string; language?: string }) {
+  async updateMe(userId: string, dto: { name?: string }) {
     await this.db.query(
-      `UPDATE users SET name = COALESCE($2, name), language = COALESCE($3, language), updated_at=now() WHERE id=$1`,
-      [userId, dto.name ?? null, dto.language ?? null],
+      `UPDATE users SET name = COALESCE($2, name), updated_at=now() WHERE id=$1`,
+      [userId, dto.name ?? null],
     );
     return this.me(userId);
   }

@@ -22,6 +22,7 @@ COPY --from=api /app/api/node_modules ./api/node_modules
 COPY --from=api /app/api/dist ./api/dist
 COPY api/package.json ./api/
 COPY api/migrations ./api/migrations
+COPY api/demo-photos ./api/demo-photos
 COPY --from=web /app/web/build ./web/build
 COPY --from=web /app/web/node_modules ./web/node_modules
 COPY web/package.json ./web/

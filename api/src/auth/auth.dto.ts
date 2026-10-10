@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, Length, Matches, MaxLength } from 'class-validator';
+import { IsOptional, IsString, Length, Matches, MaxLength } from 'class-validator';
 
 export class RequestOtpDto {
   @IsString() @MaxLength(20) phone: string;
@@ -24,5 +24,4 @@ export class RefreshDto {
 
 export class UpdateMeDto {
   @IsOptional() @IsString() @Length(2, 80) name?: string;
-  @IsOptional() @IsIn(['ny', 'en', 'tum']) language?: 'ny' | 'en' | 'tum';
 }

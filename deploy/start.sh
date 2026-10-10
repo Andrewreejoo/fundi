@@ -18,7 +18,7 @@ until node -e "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0
 done
 
 cd /app/web
-ORIGIN="$PUBLIC_URL" API_URL="http://127.0.0.1:3000" PORT="${PORT:-10000}" node build &
+ORIGIN="$PUBLIC_URL" API_URL="http://127.0.0.1:3000" PORT="${PORT:-10000}" BODY_SIZE_LIMIT="${BODY_SIZE_LIMIT:-64M}" node build &
 WEB_PID=$!
 
 # If either process stops, stop the container.

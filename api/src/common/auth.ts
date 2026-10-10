@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { config } from '../config';
 import { DbService } from '../db/db.service';
 
-export type Role = 'customer' | 'provider' | 'admin' | 'agent';
+export type Role = 'customer' | 'seller' | 'admin';
 export interface AuthUser {
   id: string;
   phone: string;
